@@ -1,0 +1,22 @@
+/* TEMA 3 — Clean Claro estilo Airbnb */
+body{background:#f7f7f7;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#ff385c}
+.topo{background:#fff;border-bottom:1px solid #ebebeb}
+.logo{color:#ff385c;font-weight:800}
+.ham{background:#222}
+.btn{background:#ff385c;color:#fff;border-radius:10px}
+.btn.sec{background:#fff;border:1px solid #222;color:#222}
+.hero{background:#fff;border:1px solid #ebebeb;border-radius:20px;color:#222;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+.hero p,.hero ul{color:#555}
+.eta{background:#222;color:#fff}
+.busca{background:#fff;border:1px solid #ebebeb;border-radius:999px;padding:10px;max-width:700px;margin:20px auto;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.busca h1{font-size:20px}
+.busca-form input,.busca-form select{background:#f7f7f7;border:1px solid #ddd;color:#222;border-radius:999px}
+.busca-form button{background:#ff385c;border-radius:999px}
+.grade{gap:20px}
+.card{background:#fff;border:1px solid #ebebeb;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.foto{aspect-ratio:1/1;border-radius:16px 16px 0 0}
+.citta{color:#717171}
+.preco{color:#222}
+.ver{color:#ff385c;font-weight:700}
+.rodape{color:#717171;border-color:#ebebeb}

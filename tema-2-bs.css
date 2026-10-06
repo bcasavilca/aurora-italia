@@ -1,0 +1,13 @@
+/* TEMA 2-BS — Vibrante + Bootstrap (reafirma identidade, IDs originais mantidos) */
+body{background:#14060d}
+.topo{background:#1f0a14 !important;border-bottom:1px solid #3d1425}
+.logo{color:#fff !important}
+.btn{background:linear-gradient(135deg,#ff2e63,#ff6b35) !important;border:0 !important;border-radius:999px !important;font-weight:800}
+.btn.sec{background:transparent !important;border:2px solid #ff2e63 !important;color:#fff !important}
+.card{background:#1f0a14 !important;border:2px solid #2d1420 !important;border-radius:20px !important;color:#fff}
+.card:hover{border-color:#ff2e63 !important}
+.card a{color:#fff}.ver{color:#fff !important}
+.citta{color:#c9a !important}.preco{color:#ff6b35 !important}
+.busca-form input,.busca-form select{background:#241019 !important;border-color:#4d1a2e !important;color:#fff !important}
+.hero{background:linear-gradient(135deg,#2b0a1a,#14060d) !important;color:#fff;border-color:#ff2e6333 !important}
+.rodape{color:#a08090 !important}

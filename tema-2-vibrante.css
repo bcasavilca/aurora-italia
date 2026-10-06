@@ -1,0 +1,21 @@
+/* TEMA 2 — Vibrante Conversão (rosa/vermelho, CTA forte) */
+body{background:#14060d;color:#fff;font-family:system-ui,sans-serif}
+.topo{background:#1f0a14;border-bottom:1px solid #3d1425;position:sticky;top:0;z-index:10}
+.logo{font-size:24px;font-weight:900;color:#fff}.logo::after{content:" ❤";color:#ff2e63}
+.ham{background:#ff2e63}
+.btn{background:linear-gradient(135deg,#ff2e63,#ff6b35);color:#fff;font-weight:800;border-radius:999px;padding:10px 22px;border:0}
+.btn.grande{font-size:18px;padding:16px 32px;box-shadow:0 8px 24px rgba(255,46,99,.4)}
+.btn.sec{background:transparent;border:2px solid #ff2e63;color:#fff}
+.hero{background:linear-gradient(135deg,#2b0a1a,#14060d);border:1px solid #ff2e6333;border-radius:20px;text-align:left;padding:32px}
+.hero h1{font-size:32px;font-weight:900}
+.hero ul{color:#7dff9b}
+.eta{background:#ff2e63;color:#fff;font-weight:800}
+.busca{position:sticky;top:60px;z-index:5;background:rgba(20,6,13,.95);backdrop-filter:blur(10px);border-radius:16px;padding:16px}
+.busca-form input,.busca-form select{border-radius:999px;padding:14px 20px;background:#241019;border-color:#4d1a2e;color:#fff}
+.busca-form button{border-radius:999px;background:linear-gradient(135deg,#ff2e63,#ff6b35);padding:14px 30px}
+.grade{gap:14px}
+.card{border-radius:20px;border:2px solid #2d1420;background:#1f0a14}
+.card:hover{border-color:#ff2e63}
+.foto{aspect-ratio:4/5}
+.preco{color:#ff6b35;font-size:22px}
+.ver{background:#ff2e63;color:#fff;display:block;text-align:center;border-radius:999px;padding:10px;margin-top:8px;font-weight:700}
