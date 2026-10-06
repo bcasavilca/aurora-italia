@@ -1,0 +1,11 @@
+/* TEMA 2-TW — Vibrante + Tailwind (overrides, IDs originais mantidos) */
+body{background:#14060d !important}
+.topo{box-shadow:0 4px 20px rgba(255,46,99,.15)}
+.card{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;animation:fadeUp .5s ease both}
+.card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}
+.card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.2s}
+.card:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 16px 40px rgba(255,46,99,.25)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.foto img{transition:transform .4s ease}.card:hover .foto img{transform:scale(1.05)}
+.btn{transition:filter .2s,transform .2s}.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.busca{box-shadow:0 8px 32px rgba(0,0,0,.4)}
