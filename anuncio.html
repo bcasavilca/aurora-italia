@@ -36,6 +36,7 @@
   <p id="info"></p>
   <p id="desc">Descrizione di esempio. Qui andranno foto, prezzo e pulsante contatta.</p>
   <a class="btn grande" id="contatta" href="chat.html">Contatta</a>
+  <p class="links"><a id="segnala" href="segnala.html">Segnala questo annuncio</a></p>
 </main>
 <script src="dados.js"></script>
 <script>
@@ -65,6 +66,7 @@
       };
     }
     document.getElementById('contatta').href = 'chat.html?anuncio=' + encodeURIComponent(a.id);
+    document.getElementById('segnala').href = 'segnala.html?annuncio=' + encodeURIComponent(a.titolo + ' — ' + a.citta);
   })();
 </script>
 <script src="menu.js"></script>

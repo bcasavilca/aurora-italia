@@ -356,6 +356,24 @@ app.post("/api/conversas/:id/msgs", (req, res) => {
   res.json({ ok: true });
 });
 
+// ---- SEGNALAZIONI (Termini/Privacy/Segnala) ----
+app.post("/api/segnalazioni", (req, res) => {
+  const { anuncio, motivo, dettagli, email } = req.body || {};
+  if (!dettagli || !String(dettagli).trim()) return res.status(400).json({ error: "Descrivi il problema" });
+  const db = load();
+  db.segnalazioni = db.segnalazioni || [];
+  db.segnalazioni.push({
+    id: crypto.randomUUID(),
+    anuncio: String(anuncio || "").slice(0, 200),
+    motivo: String(motivo || "").slice(0, 60),
+    dettagli: String(dettagli).slice(0, 2000),
+    email: String(email || "").slice(0, 120),
+    createdAt: new Date().toISOString(),
+  });
+  save(db);
+  res.json({ ok: true });
+});
+
 // static por ultimo
 app.use("/fotos", express.static(path.join(__dirname, "fotos")));
 app.use(express.static(__dirname));

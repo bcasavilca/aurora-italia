@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Segnala — Aurora</title>
+<style>html{background:#14060d}</style>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="tema-2-vibrante.css">
+<link rel="stylesheet" href="tema-2-tw.css">
+</head>
+<body>
+<header class="topo">
+  <div class="wrap topo-in">
+    <a class="logo" href="index.html">Aurora</a>
+    <nav class="menu">
+      <button class="ham" id="ham" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="drop" id="drop" hidden>
+        <a href="index.html">🔍 <span>Esplora</span></a>
+        <a href="publicar.html">➕ <span>Pubblica annuncio</span></a>
+        <a href="chat.html">✉️ <span>Messaggi</span><span class="msg-badge" hidden></span></a>
+        <a href="dashboard.html" hidden>📊 <span>Dashboard</span></a>
+        <span class="email" hidden></span>
+        <a href="login.html" class="btn">Accedi</a>
+        <a href="registrar.html" class="btn sec" hidden>Crea account</a>
+        <button class="btn link-btn" id="esci" hidden>Esci</button>
+      </div>
+    </nav>
+  </div>
+</header>
+<main class="wrap form-pag">
+  <h1>Segnala un problema</h1>
+  <p>Truffa, furto di foto, minore, comportamento sospetto? Raccontaci, interveniamo.</p>
+  <form id="f">
+    <label>Annuncio (link o titolo)<input id="annuncio" placeholder="Es. Dona matura — Bergamo"></label>
+    <label>Motivo
+      <select id="motivo">
+        <option>Truffa / richiesta anticipo</option>
+        <option>Foto false o rubate</option>
+        <option>Minore sospetto</option>
+        <option>Spam o comportamento scorretto</option>
+        <option>Privacy / rimozione dati</option>
+        <option>Altro</option>
+      </select>
+    </label>
+    <label>Dettagli<textarea id="dettagli" rows="4" required maxlength="2000" placeholder="Cosa è successo?"></textarea></label>
+    <label>Tua email (facoltativa)<input id="email" type="email" placeholder="per ricontattarti"></label>
+    <button id="btn" type="submit">Invia segnalazione</button>
+  </form>
+  <p id="msg"></p>
+  <script>
+    const qsA = new URLSearchParams(location.search).get('annuncio');
+    if (qsA) document.getElementById('annuncio').value = qsA;
+    document.getElementById('f').onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn');
+      btn.disabled = true; msg.textContent = 'Invio...';
+      try {
+        const r = await fetch('/api/segnalazioni', { method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ anuncio: annuncio.value, motivo: motivo.value, dettagli: dettagli.value, email: email.value }) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Errore');
+        msg.textContent = 'Grazie! Segnalazione ricevuta, la esamineremo.';
+        document.getElementById('f').hidden = true;
+      } catch (err) { msg.textContent = err.message; btn.disabled = false; }
+    };
+  </script>
+  <p class="links"><a href="index.html">Torna agli annunci</a></p>
+</main>
+<script src="menu.js"></script>
+</body>
+</html>
