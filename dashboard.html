@@ -67,6 +67,7 @@
           <p class="citta">${a.citta} · ${a.prezzo} €</p>
           <a class="btn sec" href="editar.html?id=${a.id}">Modifica</a>
           <button class="btn" data-del="${a.id}">Elimina</button>
+          ${ev ? '' : `<form class="promo-form" data-promo="${a.id}"><input placeholder="Codice promo" autocomplete="off"><button class="btn sec" type="submit">⭐ Evidenza gratis</button></form>`}
         </div>`;
       grade.appendChild(el);
     });
@@ -78,6 +79,18 @@
         location.reload();
         return;
       }
+    };
+    grade.onsubmit = async (e) => {
+      const f = e.target.closest('[data-promo]');
+      if (!f) return;
+      e.preventDefault();
+      const code = f.querySelector('input').value.trim();
+      if (!code) return;
+      const r = await fetch('/api/promo', { method: 'POST', headers: {'Content-Type':'application/json'},
+        credentials: 'same-origin', body: JSON.stringify({ code, anuncioId: f.dataset.promo }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { alert(d.error || 'Errore'); return; }
+      location.reload();
     };
   })();
 </script>

@@ -13,12 +13,14 @@ const DATA_FILE = path.join(__dirname, "data", "vetrina.json");
 const COOKIE = "vetrina_session";
 
 function load() {
+  let db;
   try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    db = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
   } catch {
-    return { users: [], sessions: [], resets: [], anunci: [], conversas: [],
-      promo: [{ code: "BENVENUTO", dias: 7, maxUsos: 100, usos: 0 }] };
+    db = { users: [], sessions: [], resets: [], anunci: [], conversas: [] };
   }
+  if (!db.promo) db.promo = [{ code: "BENVENUTO", dias: 7, maxUsos: 100, usos: 0 }];
+  return db;
 }
 function save(db) {
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
