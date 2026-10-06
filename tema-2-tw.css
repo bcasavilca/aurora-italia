@@ -80,3 +80,10 @@ body{background:#14060d !important}
   .form-pag{margin:16px 12px !important;padding:22px 16px !important}
   #contatta{position:sticky;bottom:12px}
 }
+
+/* ---- Skeleton (loading sem flash; JS substitui pelo resultado) ---- */
+.skel{pointer-events:none}
+.skel-foto,.skel-l{background:linear-gradient(100deg,#241019 40%,#3a1626 50%,#241019 60%) !important;background-size:200% 100% !important;animation:skel 1.2s infinite}
+.skel-l{height:14px;border-radius:7px;margin:10px 0}
+.skel-l.short{width:45%}
+@keyframes skel{to{background-position:-200% 0}}
