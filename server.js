@@ -19,7 +19,6 @@ function load() {
   } catch {
     db = { users: [], sessions: [], resets: [], anunci: [], conversas: [] };
   }
-  if (!db.promo) db.promo = [{ code: "BENVENUTO", dias: 7, maxUsos: 100, usos: 0 }];
   return db;
 }
 function save(db) {
@@ -125,27 +124,6 @@ app.get("/api/anunci", (req, res) => {
     return da - dbb;
   });
   res.json(mine);
-});
-
-// ---- PROMO (codici lancio: evidenza gratis) ----
-app.post("/api/promo", (req, res) => {
-  const u = currentUser(req);
-  if (!u) return res.status(401).json({ error: "Devi accedere" });
-  const { code, anuncioId } = req.body;
-  if (!code || !anuncioId) return res.status(400).json({ error: "Codice e annuncio richiesti" });
-  const db = load();
-  const p = (db.promo || []).find((x) => x.code.toLowerCase() === String(code).toLowerCase());
-  if (!p) return res.status(400).json({ error: "Codice non valido" });
-  if (p.usos >= p.maxUsos) return res.status(400).json({ error: "Codice esaurito" });
-  const a = (db.anunci || []).find((x) => String(x.id) === String(anuncioId));
-  if (!a) return res.status(404).json({ error: "Annuncio non trovato" });
-  if (a.email !== u.email) return res.status(403).json({ error: "Non tuo" });
-  const agora = new Date().toISOString();
-  if (a.destaqueAte && a.destaqueAte > agora) return res.status(400).json({ error: "Già in evidenza" });
-  a.destaqueAte = new Date(Date.now() + p.dias * 864e5).toISOString();
-  p.usos += 1;
-  save(db);
-  res.json({ ok: true, finoAl: a.destaqueAte });
 });
 
 let upload = null;
