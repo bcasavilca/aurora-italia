@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora Annunci — Resumo do Site HTML</title>
+<style>
+body{background:#111;color:#f5f5f5;font-family:Arial,sans-serif;margin:0}
+header{background:#151515;border-bottom:1px solid #292929;padding:24px;text-align:center}
+h1{margin:0;font-size:34px}.sub{color:#aaa}
+.wrap{max-width:850px;margin:auto;padding:24px 20px}
+h2{border-left:4px solid #fff;padding-left:10px;margin-top:32px}
+.card{background:#181818;border:1px solid #292929;border-radius:12px;padding:16px;margin:10px 0}
+code{background:#222;border:1px solid #333;padding:2px 6px;border-radius:6px;color:#fff}
+ul{line-height:1.7;color:#cfcfcf}p{color:#cfcfcf;line-height:1.6}
+a{color:#fff}footer{text-align:center;color:#777;padding:24px;border-top:1px solid #292929}
+.tag{display:inline-block;background:#fff;color:#111;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px}
+</style>
+</head>
+<body>
+<header>
+<h1>Aurora — Annunci</h1>
+<p class="sub">Site HTML + Node/Express — Solo maggiorenni 18+</p>
+<span class="tag">RESUMO HTML</span>
+</header>
+<div class="wrap">
+<h2>1. O que é</h2>
+<p>Último Aurora que fizemos: <code>site-anuncios/</code> rodando em <code>https://workplace-offices-king-shortly.trycloudflare.com/index.html</code>. Vitrine de anúncios adultos 18+ com busca por cidade, publicação com fotos, chat interno sem links, login com cookie.</p>
+
+<h2>2. Páginas HTML</h2>
+<div class="card">
+<b>index.html</b> — Esplora / busca (q + citta) / Annunci recenti / gate 18+ (localStorage aurora18)<br>
+<b>anuncio.html</b> — Detalhe + contato via chat<br>
+<b>publicar.html / editar.html</b> — Criar / editar anúncio com até 5 fotos<br>
+<b>chat.html</b> — Messaggi / conversas<br>
+<b>login.html / registrar.html / recuperar.html / reset.html</b> — Auth + reset via Resend<br>
+<b>dashboard.html</b> — Meus anúncios + promo BENVENUTO<br>
+<b>menu.js / dados.js (ANUNCI fallback) / styles.css</b> — Menu mobile, seeds, CSS
+</div>
+
+<h2>3. Backend — server.js (Express :3003)</h2>
+<ul>
+<li>Static + <code>/fotos</code> (multer 5MB, só image/, 5 fotos)</li>
+<li>Auth: <code>/api/signup /login /logout /me</code> — bcryptjs + cookie <code>vetrina_session</code> (sha256, 30 dias), rate-limit 15/15min</li>
+<li>Anunci: <code>GET /api/anunci</code> (meus + SEED s1/s2/s3, destaque primeiro), <code>POST/PUT/DELETE /api/anunci/:id</code> (só dono)</li>
+<li>Promo: <code>POST /api/promo</code> code BENVENUTO = 7 dias evidenza gratis</li>
+<li>Chat: <code>GET/POST /api/conversas</code>, <code>GET /api/conversas/:id</code>, <code>POST /api/conversas/:id/msgs</code> — bloqueia links (LINK_RE), 1000 chars, seen/naolidas</li>
+<li>Reset: <code>/api/forgot /api/reset</code> — token 1h, link <code>/reset.html?token=</code>, email via Resend</li>
+<li>DB: <code>data/vetrina.json</code> {users, sessions, resets, anunci, conversas, promo}</li>
+</ul>
+
+<h2>4. Fluxo principal</h2>
+<p>Gate 18+ → guest-hero (Crea account gratis) → busca → card → anuncio.html?id= → login → contatta → chat.html → dashboard gerencia + promo.</p>
+
+<h2>5. Como rodar</h2>
+<p><code>cd ~/site-anuncios && npm start</code> → <code>http://localhost:3003/index.html</code> → tunnel Cloudflare para URL pública.</p>
+</div>
+<footer>© 2026 Aurora — resumo gerado do último site HTML</footer>
+</body>
+</html>

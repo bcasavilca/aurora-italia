@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Annuncio — Aurora</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topo">
+  <div class="wrap topo-in">
+    <a class="logo" href="index.html">Aurora</a>
+    <nav class="menu">
+      <button class="ham" id="ham" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="drop" id="drop" hidden>
+        <a href="index.html">🔍 <span>Esplora</span></a>
+        <a href="publicar.html">➕ <span>Pubblica annuncio</span></a>
+        <a href="chat.html">✉️ <span>Messaggi</span><span class="msg-badge" hidden></span></a>
+        <a href="dashboard.html" hidden>📊 <span>Dashboard</span></a>
+        <span class="email" hidden></span>
+        <a href="login.html" class="btn">Accedi</a>
+        <a href="registrar.html" class="btn sec" hidden>Crea account</a>
+        <button class="btn link-btn" id="esci" hidden>Esci</button>
+      </div>
+    </nav>
+  </div>
+</header>
+<main class="wrap detalhe">
+  <a href="index.html">← Torna agli annunci</a>
+  <h1 id="titolo">Annuncio</h1>
+  <div class="foto-grande" id="foto">Nessuna foto</div>
+  <div class="gal" id="gal"></div>
+  <p id="info"></p>
+  <p id="desc">Descrizione di esempio. Qui andranno foto, prezzo e pulsante contatta.</p>
+  <a class="btn grande" id="contatta" href="chat.html">Contatta</a>
+</main>
+<script src="dados.js"></script>
+<script>
+  (async () => {
+    const id = new URLSearchParams(location.search).get('id') || 1;
+    let a = ANUNCI.find(x => x.id == id) || ANUNCI[0];
+    try {
+      const r = await fetch('/api/anunci');
+      const d = await r.json();
+      if (Array.isArray(d)) { const f = d.find(x => String(x.id) === String(id)); if (f) a = f; }
+    } catch {}
+    document.getElementById('titolo').textContent = a.titolo;
+    document.getElementById('info').textContent = `${a.citta} · ${a.prezzo} €`;
+    if (a.descrizione) document.getElementById('desc').textContent = a.descrizione;
+    const lista = (a.fotos && a.fotos.length ? a.fotos : [a.foto].filter(Boolean));
+    const fotoEl = document.getElementById('foto');
+    const galEl = document.getElementById('gal');
+    if (lista.length) {
+      fotoEl.innerHTML = `<img id="foto-main" src="${lista[0]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`;
+      galEl.innerHTML = lista.map((x, i) => `<img src="${x}" data-i="${i}" class="${i === 0 ? 'sel' : ''}" alt="">`).join('');
+      galEl.onclick = (e) => {
+        const im = e.target.closest('img');
+        if (!im) return;
+        document.getElementById('foto-main').src = lista[+im.dataset.i];
+        galEl.querySelectorAll('img').forEach(y => y.classList.remove('sel'));
+        im.classList.add('sel');
+      };
+    }
+    document.getElementById('contatta').href = 'chat.html?anuncio=' + encodeURIComponent(a.id);
+  })();
+</script>
+<script src="menu.js"></script>
+</body>
+</html>

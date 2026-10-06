@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora — Annunci</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topo">
+  <div class="wrap topo-in">
+    <a class="logo" href="index.html">Aurora</a>
+    <nav class="menu">
+      <button class="ham" id="ham" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="drop" id="drop" hidden>
+        <a href="index.html" class="ativo">🔍 <span>Esplora</span></a>
+        <a href="publicar.html">➕ <span>Pubblica annuncio</span></a>
+        <a href="chat.html">✉️ <span>Messaggi</span><span class="msg-badge" hidden></span></a>
+        <a href="dashboard.html" hidden>📊 <span>Dashboard</span></a>
+        <span class="email" hidden></span>
+        <a href="login.html" class="btn">Accedi</a>
+        <a href="registrar.html" class="btn sec" hidden>Crea account</a>
+        <button class="btn link-btn" id="esci" hidden>Esci</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="gate" id="gate" hidden>
+    <div class="gate-box">
+      <h1>Sei maggiorenne?</h1>
+      <p>Aurora contiene annunci per soli adulti (18+). Conferma la tua età per entrare.</p>
+      <div class="hero-cta">
+        <button class="btn grande" id="gate-si">Sì, ho 18+ anni</button>
+        <button class="btn sec grande" id="gate-no">No, esco</button>
+      </div>
+    </div>
+  </div>
+  <section class="hero" id="guest-hero">
+    <span class="eta">Solo maggiorenni 18+</span>
+    <h1>Accedi e chatta con le nostre ragazze reali</h1>
+    <p>Senza rischio di truffa: annunci verificati, chat interna protetta e nessun pagamento anticipato.</p>
+    <ul>
+      <li>✔ Profili verificati</li>
+      <li>✔ Chat interna sicura</li>
+      <li>✔ Nessun anticipo richiesto</li>
+    </ul>
+    <div class="hero-cta">
+      <a class="btn grande" href="registrar.html">Crea account gratis</a>
+      <a class="btn sec grande" href="login.html">Accedi</a>
+    </div>
+  </section>
+
+  <section class="busca">
+    <h1>Trova l'annuncio giusto</h1>
+    <form class="busca-form" id="busca-form" action="index.html" method="get">
+      <input type="search" name="q" id="fq" placeholder="Cerca per città...">
+      <select name="citta" id="fcitta">
+        <option value="">Tutte le città</option>
+      </select>
+      <button type="submit">Cerca</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Annunci recenti</h2>
+    <p id="nris" style="color:#aaa"></p>
+    <div class="grade" id="grade"></div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <div class="wrap">
+    <p>© 2026 Aurora — Solo maggiorenni 18+</p>
+    <p><a href="#">Termini</a> · <a href="#">Privacy</a> · <a href="#">Segnala</a></p>
+  </div>
+</footer>
+
+<script src="dados.js"></script>
+<script>
+  const grade = document.getElementById('grade');
+  function card(a) {
+    const el = document.createElement('article');
+    el.className = 'card';
+    el.innerHTML = `
+      <a href="anuncio.html?id=${a.id}">
+        <div class="foto">${a.foto ? `<img src="${a.foto}" alt="">` : '<span>Nessuna foto</span>'}</div>
+      </a>
+      <div class="card-corpo">
+        <h3><a href="anuncio.html?id=${a.id}">${a.titolo}</a></h3>
+        <p class="citta">${a.citta}</p>
+        <p class="preco">${a.prezzo} €</p>
+        <a class="ver" href="anuncio.html?id=${a.id}">Vedi annuncio →</a>
+      </div>`;
+    grade.appendChild(el);
+  }
+  (async () => {
+    let user = null;
+    try {
+      const me = await (await fetch('/api/me', { credentials: 'same-origin' })).json();
+      user = me.user;
+      if (user) document.getElementById('guest-hero').hidden = true;
+    } catch {}
+    if (!user && !localStorage.getItem('aurora18')) {
+      const g = document.getElementById('gate');
+      g.hidden = false;
+      document.getElementById('gate-si').onclick = () => { localStorage.setItem('aurora18', '1'); g.hidden = true; };
+      document.getElementById('gate-no').onclick = () => { location.href = 'https://www.google.com'; };
+    }
+    let lista = [];
+    try {
+      const r = await fetch('/api/anunci');
+      const d = await r.json();
+      if (Array.isArray(d) && d.length) lista = d;
+    } catch {}
+    if (!lista.length) lista = ANUNCI;
+    // città dinamiche
+    const qs = new URLSearchParams(location.search);
+    const q = (qs.get('q') || '').toLowerCase();
+    const citta = qs.get('citta') || '';
+    fq.value = qs.get('q') || '';
+    const sel = fcitta;
+    [...new Set(lista.map(a => a.citta).filter(Boolean))].sort().forEach(c => {
+      const o = document.createElement('option');
+      o.textContent = c;
+      sel.appendChild(o);
+    });
+    sel.value = citta;
+    const res = lista.filter(a => {
+      const testo = `${a.titolo} ${a.descrizione || ''} ${a.citta}`.toLowerCase();
+      if (q && !testo.includes(q)) return false;
+      if (citta && a.citta !== citta) return false;
+      return true;
+    });
+    grade.innerHTML = '';
+    nris.textContent = `${res.length} ${res.length === 1 ? 'annuncio trovato' : 'annunci trovati'}`;
+    if (!res.length) grade.innerHTML = '<p>Nessun annuncio trovato. Prova a cambiare i filtri.</p>';
+    res.forEach(card);
+  })();
+</script>
+<script src="menu.js"></script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pubblica — Aurora</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topo">
+  <div class="wrap topo-in">
+    <a class="logo" href="index.html">Aurora</a>
+    <nav class="menu">
+      <button class="ham" id="ham" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="drop" id="drop" hidden>
+        <a href="index.html">🔍 <span>Esplora</span></a>
+        <a href="publicar.html" class="ativo">➕ <span>Pubblica annuncio</span></a>
+        <a href="chat.html">✉️ <span>Messaggi</span><span class="msg-badge" hidden></span></a>
+        <a href="dashboard.html" hidden>📊 <span>Dashboard</span></a>
+        <span class="email" hidden></span>
+        <a href="login.html" class="btn">Accedi</a>
+        <a href="registrar.html" class="btn sec" hidden>Crea account</a>
+        <button class="btn link-btn" id="esci" hidden>Esci</button>
+      </div>
+    </nav>
+  </div>
+</header>
+<main class="wrap form-pag">
+  <h1>Pubblica annuncio</h1>
+  <form id="f">
+    <label>Titolo<input id="titolo" required placeholder="Es. Massaggio relax"></label>
+    <label>Città<input id="citta" required placeholder="Bergamo"></label>
+    <label>Prezzo €<input id="prezzo" type="number" min="1" placeholder="80"></label>
+    <label>Foto<input id="fotos" type="file" accept="image/*" multiple></label>
+    <label>Descrizione<textarea id="desc" rows="4"></textarea></label>
+    <button id="btn" type="submit">Salva annuncio</button>
+  </form>
+  <p id="msg"></p>
+  <script>
+    document.getElementById('f').onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn');
+      btn.disabled = true; msg.textContent = 'Salvataggio...';
+      try {
+        const fd = new FormData();
+        fd.append('titolo', titolo.value);
+        fd.append('citta', citta.value);
+        fd.append('prezzo', prezzo.value);
+        fd.append('descrizione', desc.value);
+        for (const f of fotos.files) fd.append('fotos', f);
+        const r = await fetch('/api/anunci', { method: 'POST', body: fd, credentials: 'same-origin' });
+        if (r.status === 401) { location.href = 'login.html'; return; }
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Errore');
+        msg.textContent = 'Annuncio salvato!';
+        location.href = 'index.html';
+      } catch (err) { msg.textContent = err.message; btn.disabled = false; }
+    };
+  </script>
+</main>
+<script src="menu.js"></script>
+</body>
+</html>

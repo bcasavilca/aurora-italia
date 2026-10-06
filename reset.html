@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuova password — Aurora</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="wrap form-pag">
+  <h1>Nuova password</h1>
+  <form id="f">
+    <label>Nuova password<input id="pw" type="password" minlength="8" required></label>
+    <label>Conferma<input id="pw2" type="password" minlength="8" required></label>
+    <button>Reimposta</button>
+  </form>
+  <p id="msg"></p>
+  <p class="links"><a href="login.html">Torna al login</a></p>
+</main>
+<script>
+  const token = new URLSearchParams(location.search).get('token') || '';
+  if (!token) msg.textContent = 'Link non valido.';
+  document.getElementById('f').onsubmit = async (e) => {
+    e.preventDefault();
+    const r = await fetch('/api/reset', { method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, password: pw.value, confirm: pw2.value }) });
+    const d = await r.json();
+    msg.textContent = d.ok ? 'Password cambiata! Vai al login.' : (d.error || 'Errore');
+    if (d.ok) setTimeout(() => location.href = 'login.html', 1500);
+  };
+</script>
+<script src="menu.js"></script>
+</body>
+</html>

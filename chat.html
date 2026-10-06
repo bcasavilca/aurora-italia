@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messaggi — Aurora</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.inbox { display: grid; grid-template-columns: 280px 1fr; gap: 12px; padding: 16px 0 32px; }
+.lista { background: #17171f; border: 1px solid #2a2a38; border-radius: 12px; overflow: hidden; }
+.conv { display: block; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid #2a2a38; padding: 12px; color: #fff; cursor: pointer; font: inherit; }
+.conv.sel { background: #221d33; }
+.conv .t { font-weight: 700; font-size: 14px; }
+.conv .u { color: #aaa; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge { display: inline-block; background: #7c3aed; border-radius: 20px; font-size: 12px; padding: 0 8px; margin-left: 6px; }
+.painel { background: #000; border: 1px solid #2a2a38; border-radius: 12px; padding: 0; display: flex; flex-direction: column; min-height: calc(100dvh - 170px); overflow: hidden; }
+.chead { display: flex; align-items: center; gap: 10px; background: #131316; padding: 10px 12px; border-bottom: 1px solid #2a2a2e; }
+.chead .back { background: none; border: 0; color: #aaa; font-size: 22px; cursor: pointer; padding: 0 4px; }
+.chead .av { width: 42px; height: 42px; border-radius: 8px; background: #2a2a38; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; }
+.chead .av img { width: 100%; height: 100%; object-fit: cover; }
+.chead .nm { font-size: 18px; font-weight: 700; color: #fff; line-height: 1.1; }
+.chead .nm u { text-decoration: underline; }
+.chat-box { background: #000; border: 0; border-radius: 0; padding: 12px 12px 80px; display: flex; flex-direction: column; gap: 10px; min-height: 200px; overflow-y: auto; }
+.msg { padding: 12px 14px; border-radius: 8px; max-width: 92%; font-size: 17px; line-height: 1.35; word-wrap: break-word; }
+.outro { background: #1c1c1e; align-self: flex-start; max-width: 72%; color: #fff; }
+.meu { background: #3a3a3c; align-self: flex-end; width: 90%; max-width: 90%; margin-left: 10%; color: #fff; }
+.mtime { display: block; color: #8e8e93; font-size: 13px; margin-top: 8px; letter-spacing: 2px; }
+.mtime .seen { margin-left: 10px; letter-spacing: 1px; }
+.date-sep { display: flex; align-items: center; gap: 12px; color: #8e8e93; font-size: 16px; margin: 12px 0; text-align: center; }
+.date-sep::before, .date-sep::after { content: ""; flex: 1; height: 1px; background: #2c2c2e; }
+.chat-form { display: flex; align-items: center; gap: 10px; margin-top: 0; background: #1c1c1e; border-top: 1px solid #2c2c2e; padding: 12px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; }
+.chat-form input { flex: 1; padding: 10px 4px; border: 0; background: transparent; color: #fff; outline: none; font-size: 17px; }
+.chat-form button { padding: 6px 8px; border: 0; border-radius: 8px; background: none; color: #6e6e73; font-size: 22px; cursor: pointer; }
+@media (max-width: 700px) {
+  .inbox { grid-template-columns: 1fr; padding: 0 0 0; margin: 0; }
+  .wrap { padding: 0 0; }
+  main.wrap > h1, main.wrap > p { margin-left: 12px; margin-right: 12px; }
+  .painel { border: 0; border-radius: 0; min-height: calc(100dvh - 61px); }
+  .chat-box { padding: 12px 12px 80px; }
+  .chat-form { padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); }
+}
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="wrap topo-in">
+    <a class="logo" href="index.html">Aurora</a>
+    <nav class="menu">
+      <button class="ham" id="ham" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="drop" id="drop" hidden>
+        <a href="index.html">🔍 <span>Esplora</span></a>
+        <a href="publicar.html">➕ <span>Pubblica annuncio</span></a>
+        <a href="chat.html" class="ativo">✉️ <span>Messaggi</span><span class="msg-badge" hidden></span></a>
+        <a href="dashboard.html" hidden>📊 <span>Dashboard</span></a>
+        <span class="email" hidden></span>
+        <a href="login.html" class="btn">Accedi</a>
+        <a href="registrar.html" class="btn sec" hidden>Crea account</a>
+        <button class="btn link-btn" id="esci" hidden>Esci</button>
+      </div>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+  <h1 style="margin-top:16px">Messaggi</h1>
+  <p id="stato">Caricamento...</p>
+  <div class="inbox" id="inbox" hidden>
+    <div class="lista" id="lista"></div>
+    <div class="painel" id="painel">
+      <div class="chead" id="chead" hidden>
+        <button class="back" id="cback" aria-label="Indietro">‹</button>
+        <div>
+          <div class="nm"><u id="cnome">—</u></div>
+        </div>
+      </div>
+      <div class="chat-box" id="box" style="flex:1"></div>
+      <form class="chat-form" id="f" hidden>
+        <input id="txt" placeholder="Your message" maxlength="1000" autocomplete="off">
+        <button aria-label="Invia">➤</button>
+      </form>
+    </div>
+  </div>
+</main>
+<script src="menu.js"></script>
+<script>
+  const qs = new URLSearchParams(location.search);
+  let aberta = qs.get('c') || null;
+  let eu = null, timer = null;
+  let coutro = '', ctitolo = '';
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmtH = iso => { try { const d = new Date(iso); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); } catch { return ''; } };
+  const fmtD = iso => { try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); } catch { return ''; } };
+
+  async function lista(soloLista) {
+    const r = await fetch('/api/conversas', { credentials: 'same-origin' });
+    if (r.status === 401) { stato.innerHTML = 'Devi <a href="login.html">accedere</a>.'; return null; }
+    const cs = await r.json();
+    inbox.hidden = false;
+    if (!cs.length) { stato.textContent = 'Nessuna conversazione ancora.'; }
+    else stato.textContent = '';
+    const L = document.getElementById('lista');
+    L.innerHTML = '';
+    cs.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'conv' + (c.id === aberta ? ' sel' : '');
+      const ante = (c.ultima || '').slice(0, 45);
+      b.innerHTML = `<div class="t">${esc(c.outro)}${c.naolidas ? `<span class="badge">${c.naolidas}</span>` : ''}</div><div class="u">${c.mia ? 'Tu: ' : ''}${esc(ante)}</div>`;
+      b.onclick = () => { location.href = 'chat.html?c=' + c.id; };
+      L.appendChild(b);
+    });
+    if (soloLista !== false) mostraVista();
+    return cs;
+  }
+
+  function mostraVista() {
+    const isChat = !!aberta;
+    const L = document.getElementById('lista');
+    const P = document.getElementById('painel');
+    const inboxEl = document.getElementById('inbox');
+    const st = document.getElementById('stato');
+    if (isChat) {
+      if (L) L.style.display = 'none';
+      if (P) P.style.display = '';
+      if (inboxEl) inboxEl.style.gridTemplateColumns = '1fr';
+      if (st) st.style.display = 'none';
+      const h1 = document.querySelector('main.wrap > h1');
+      if (h1) h1.style.display = 'none';
+    } else {
+      if (L) L.style.display = '';
+      if (P) P.style.display = 'none';
+      if (inboxEl) inboxEl.style.gridTemplateColumns = '';
+      if (st) st.style.display = '';
+      const h1 = document.querySelector('main.wrap > h1');
+      if (h1) h1.style.display = '';
+    }
+  }
+
+  async function abrir() {
+    clearInterval(timer);
+    if (!aberta) { mostraVista(); return; }
+    mostraVista();
+    const r = await fetch('/api/conversas/' + aberta, { credentials: 'same-origin' });
+    if (!r.ok) return;
+    const c = await r.json();
+    eu = c.eu;
+    coutro = c.outro || '';
+    // header stile screenshot
+    document.getElementById('chead').hidden = false;
+    document.getElementById('cnome').textContent = coutro;
+    document.getElementById('cback').onclick = () => { location.href = 'chat.html'; };
+    const box = document.getElementById('box');
+    let html = '';
+    let lastDay = '';
+    const msgs = c.msgs || [];
+    msgs.forEach((m, i) => {
+      const day = fmtD(m.at);
+      if (day && day !== lastDay) { html += `<div class="date-sep">${esc(day)}</div>`; lastDay = day; }
+      const mine = m.from === eu;
+      const isLast = i === msgs.length - 1;
+      html += `<div class="msg ${mine ? 'meu' : 'outro'}">${esc(m.texto)}<span class="mtime">${fmtH(m.at)}${mine && isLast ? '<span class="seen">Seen</span>' : ''}</span></div>`;
+    });
+    box.innerHTML = html;
+    box.scrollTop = box.scrollHeight;
+    document.getElementById('f').hidden = false;
+    timer = setInterval(abrir, 5000);
+  }
+
+  const LINK_RE = /(https?:\/\/|www\.|hxxps?:\/\/|\b[a-z0-9-]+(\.[a-z]{2,})+\b|\b(punto|dot)\s?(com|net|org|it|me|info|online|site|top|click|link)\b)/i;
+  const LINK_MSG = 'Link non consentiti in chat';
+
+  document.getElementById('f').onsubmit = async (e) => {
+    e.preventDefault();
+    const t = txt.value.trim();
+    if (!t) return;
+    if (LINK_RE.test(t)) { alert(LINK_MSG); return; }
+    // prima mensagem: cria conversa e vai para ?c=
+    if (!aberta && novaAn) {
+      txt.value = '';
+      const r = await fetch('/api/conversas', { method: 'POST', headers: {'Content-Type':'application/json'},
+        credentials: 'same-origin', body: JSON.stringify({ anuncioId: novaAn, texto: t }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.status === 401) { location.href = 'login.html'; return; }
+      if (!r.ok) { alert(d.error || 'Errore'); txt.value = t; return; }
+      location.href = 'chat.html?c=' + d.id;
+      return;
+    }
+    txt.value = '';
+    const r = await fetch('/api/conversas/' + aberta + '/msgs', { method: 'POST', headers: {'Content-Type':'application/json'},
+      credentials: 'same-origin', body: JSON.stringify({ texto: t }) });
+    if (!r.ok) { const d = await r.json().catch(() => ({})); alert(d.error || 'Errore'); txt.value = t; return; }
+    abrir(); lista(false);
+  };
+
+  const novaAn = qs.get('anuncio');
+  (async () => {
+    // Contatta da anuncio.html -> apre diretto la chat, primo invio crea la conversa
+    if (novaAn && !aberta) {
+      inbox.hidden = false;
+      document.getElementById('lista').style.display = 'none';
+      document.getElementById('painel').style.display = '';
+      document.getElementById('inbox').style.gridTemplateColumns = '1fr';
+      document.getElementById('stato').style.display = 'none';
+      const h1 = document.querySelector('main.wrap > h1');
+      if (h1) h1.style.display = 'none';
+      document.getElementById('chead').hidden = false;
+      document.getElementById('cback').onclick = () => { location.href = 'anuncio.html?id=' + encodeURIComponent(novaAn); };
+      try {
+        const rs = await fetch('/api/anunci');
+        const ds = await rs.json();
+        const found = (Array.isArray(ds) ? ds : []).find(x => String(x.id) === String(novaAn));
+        const nome = (found && (found.email || found.titolo)) || '—';
+        document.getElementById('cnome').textContent = nome;
+      } catch {}
+      document.getElementById('box').innerHTML = '';
+      document.getElementById('f').hidden = false;
+      lista(false);
+      return;
+    }
+    await lista();
+    if (aberta) abrir();
+  })();
+</script>
+</body>
+</html>

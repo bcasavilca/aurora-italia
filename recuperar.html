@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recupera password — Aurora</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topo">
+  <div class="wrap topo-in">
+    <a class="logo" href="index.html">Aurora</a>
+    <nav class="menu">
+      <button class="ham" id="ham" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="drop" id="drop" hidden>
+        <a href="index.html">🔍 <span>Esplora</span></a>
+        <a href="publicar.html">➕ <span>Pubblica annuncio</span></a>
+        <a href="chat.html">✉️ <span>Messaggi</span><span class="msg-badge" hidden></span></a>
+        <a href="dashboard.html" hidden>📊 <span>Dashboard</span></a>
+        <span class="email" hidden></span>
+        <a href="login.html" class="btn">Accedi</a>
+        <a href="registrar.html" class="btn sec" hidden>Crea account</a>
+        <button class="btn link-btn" id="esci" hidden>Esci</button>
+      </div>
+    </nav>
+  </div>
+</header>
+<main class="wrap form-pag">
+  <h1>Password dimenticata</h1>
+  <p>Inserisci la tua email e ti invieremo le istruzioni.</p>
+  <form id="f">
+    <label>Email<input id="email" type="email" required placeholder="la-tua@email.com"></label>
+    <button>Invia istruzioni</button>
+  </form>
+  <p id="msg">Se esiste un account, riceverai le istruzioni.</p>
+  <script>
+    document.getElementById('f').onsubmit = async (e) => {
+      e.preventDefault();
+      msg.textContent = 'Invio...';
+      const r = await fetch('/api/forgot', { method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email: email.value }) });
+      const d = await r.json();
+      msg.textContent = d.ok ? 'Se esiste un account, controlla inbox/spam.' : (d.error || 'Errore');
+    };
+  </script>
+  <p class="links"><a href="login.html">Torna al login</a></p>
+</main>
+<script src="menu.js"></script>
+</body>
+</html>

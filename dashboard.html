@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I miei annunci — Aurora</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topo">
+  <div class="wrap topo-in">
+    <a class="logo" href="index.html">Aurora</a>
+    <nav class="menu">
+      <button class="ham" id="ham" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="drop" id="drop" hidden>
+        <a href="index.html">🔍 <span>Esplora</span></a>
+        <a href="publicar.html">➕ <span>Pubblica annuncio</span></a>
+        <a href="chat.html">✉️ <span>Messaggi</span><span class="msg-badge" hidden></span></a>
+        <a href="dashboard.html" class="ativo" hidden>📊 <span>Dashboard</span></a>
+        <span class="email" hidden></span>
+        <a href="login.html" class="btn">Accedi</a>
+        <a href="registrar.html" class="btn sec" hidden>Crea account</a>
+        <button class="btn link-btn" id="esci" hidden>Esci</button>
+      </div>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+  <section class="busca dash-top">
+    <h1>I miei annunci</h1>
+    <p id="stato">Caricamento...</p>
+    <p class="dash-acao"><a class="btn" href="publicar.html">+ Nuovo annuncio</a></p>
+  </section>
+  <section>
+    <div class="grade" id="grade"></div>
+  </section>
+</main>
+<script src="menu.js"></script>
+<script>
+  (async () => {
+    const grade = document.getElementById('grade');
+    const stato = document.getElementById('stato');
+    let user = null;
+    try {
+      const r = await fetch('/api/me', { credentials: 'same-origin' });
+      user = (await r.json()).user;
+    } catch {}
+    if (!user) { stato.innerHTML = 'Devi <a href="login.html">accedere</a> per vedere i tuoi annunci.'; return; }
+    let tutti = [];
+    try { tutti = await (await fetch('/api/anunci')).json(); } catch {}
+    const miei = tutti.filter(a => a.email === user.email);
+    stato.textContent = `${miei.length} ${miei.length === 1 ? 'annuncio' : 'annunci'}`;
+    if (!miei.length) { grade.innerHTML = '<p>Nessun annuncio. Pubblica il primo!</p>'; return; }
+    miei.forEach(a => {
+      const el = document.createElement('article');
+      el.className = 'card';
+      const ev = a.destaqueAte && a.destaqueAte > new Date().toISOString();
+      el.innerHTML = `
+        <a href="anuncio.html?id=${a.id}"><div class="foto">${a.foto ? `<img src="${a.foto}" alt="">` : '<span>Nessuna foto</span>'}</div></a>
+        <div class="card-corpo">
+          ${ev ? `<span class="eta">⭐ In evidenza fino al ${a.destaqueAte.slice(0, 10).split('-').reverse().join('/')}</span>` : ''}
+          <h3><a href="anuncio.html?id=${a.id}">${a.titolo}</a></h3>
+          <p class="citta">${a.citta} · ${a.prezzo} €</p>
+          <a class="btn sec" href="editar.html?id=${a.id}">Modifica</a>
+          <button class="btn" data-del="${a.id}">Elimina</button>
+        </div>`;
+      grade.appendChild(el);
+    });
+    grade.onclick = async (e) => {
+      const b = e.target.closest('[data-del]');
+      if (b) {
+        if (!confirm('Eliminare questo annuncio?')) return;
+        await fetch('/api/anunci/' + b.dataset.del, { method: 'DELETE', credentials: 'same-origin' });
+        location.reload();
+        return;
+      }
+    };
+  })();
+</script>
+</body>
+</html>

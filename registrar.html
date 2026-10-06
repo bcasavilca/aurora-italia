@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crea account — Aurora</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topo">
+  <div class="wrap topo-in">
+    <a class="logo" href="index.html">Aurora</a>
+    <nav class="menu">
+      <button class="ham" id="ham" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="drop" id="drop" hidden>
+        <a href="index.html">🔍 <span>Esplora</span></a>
+        <a href="publicar.html">➕ <span>Pubblica annuncio</span></a>
+        <a href="chat.html">✉️ <span>Messaggi</span><span class="msg-badge" hidden></span></a>
+        <a href="dashboard.html" hidden>📊 <span>Dashboard</span></a>
+        <span class="email" hidden></span>
+        <a href="login.html" class="btn">Accedi</a>
+        <a href="registrar.html" class="btn sec" hidden>Crea account</a>
+        <button class="btn link-btn" id="esci" hidden>Esci</button>
+      </div>
+    </nav>
+  </div>
+</header>
+<main class="wrap form-pag">
+  <h1>Crea account</h1>
+  <form id="f">
+    <label>Email<input id="email" type="email" required></label>
+    <label>Password (min 8)<input id="pw" type="password" minlength="8" required></label>
+    <label>Conferma password<input id="pw2" type="password" minlength="8" required></label>
+    <button>Registrati</button>
+  </form>
+  <p id="msg"></p>
+  <script>
+    document.getElementById('f').onsubmit = async (e) => {
+      e.preventDefault();
+      const r = await fetch('/api/signup', { method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email: email.value, password: pw.value, confirm: pw2.value }) });
+      const d = await r.json();
+      msg.textContent = d.ok ? 'Account creato!' : (d.error || 'Errore');
+      if (d.ok) location.href = 'index.html';
+    };
+  </script>
+  <p class="links"><a href="login.html">Hai già un account? Accedi</a></p>
+</main>
+<script src="menu.js"></script>
+</body>
+</html>

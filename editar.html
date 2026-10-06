@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modifica annuncio — Aurora</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.mini { display: inline-block; position: relative; margin: 4px; }
+.mini img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; }
+.mini label { display: block; font-size: 13px; color: #f66; cursor: pointer; }
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="wrap topo-in">
+    <a class="logo" href="index.html">Aurora</a>
+    <nav class="menu">
+      <button class="ham" id="ham" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="drop" id="drop" hidden>
+        <a href="index.html">🔍 <span>Esplora</span></a>
+        <a href="publicar.html">➕ <span>Pubblica annuncio</span></a>
+        <a href="chat.html">✉️ <span>Messaggi</span><span class="msg-badge" hidden></span></a>
+        <a href="dashboard.html" hidden>📊 <span>Dashboard</span></a>
+        <span class="email" hidden></span>
+        <a href="login.html" class="btn">Accedi</a>
+        <a href="registrar.html" class="btn sec" hidden>Crea account</a>
+        <button class="btn link-btn" id="esci" hidden>Esci</button>
+      </div>
+    </nav>
+  </div>
+</header>
+<main class="wrap form-pag">
+  <h1>Modifica annuncio</h1>
+  <p id="stato">Caricamento...</p>
+  <form id="f" hidden>
+    <label>Titolo<input id="titolo" required maxlength="80"></label>
+    <label>Città<input id="citta" required maxlength="60"></label>
+    <label>Prezzo €<input id="prezzo" type="number" min="0"></label>
+    <label>Descrizione<textarea id="desc" rows="4" maxlength="2000"></textarea></label>
+    <div><p>Foto attuali (spunta per rimuovere):</p><div id="atual"></div></div>
+    <label>Aggiungi foto<input id="fotos" type="file" accept="image/*" multiple></label>
+    <button id="btn" type="submit">Salva modifiche</button>
+  </form>
+  <p id="msg"></p>
+  <p class="links"><a href="dashboard.html">Torna alla dashboard</a></p>
+</main>
+<script src="menu.js"></script>
+<script>
+  const id = new URLSearchParams(location.search).get('id');
+  let AD = null;
+  (async () => {
+    if (!id) { stato.textContent = 'Annuncio non specificato.'; return; }
+    const me = await (await fetch('/api/me', { credentials: 'same-origin' })).json();
+    if (!me.user) { location.href = 'login.html'; return; }
+    const all = await (await fetch('/api/anunci')).json();
+    AD = all.find(a => String(a.id) === String(id));
+    if (!AD) { stato.textContent = 'Annuncio non trovato.'; return; }
+    if (AD.email !== me.user.email) { stato.textContent = 'Non è il tuo annuncio.'; return; }
+    stato.hidden = true;
+    f.hidden = false;
+    titolo.value = AD.titolo || '';
+    citta.value = AD.citta || '';
+    prezzo.value = AD.prezzo ?? '';
+    desc.value = AD.descrizione || '';
+    atual.innerHTML = (AD.fotos && AD.fotos.length ? AD.fotos : [AD.foto].filter(Boolean))
+      .map(x => `<span class="mini"><img src="${x}" alt=""><label><input type="checkbox" name="rm" value="${x}"> rimuovi</label></span>`).join('')
+      || '<span>Nessuna foto</span>';
+  })();
+  document.getElementById('f').onsubmit = async (e) => {
+    e.preventDefault();
+    btn.disabled = true; msg.textContent = 'Salvataggio...';
+    try {
+      const fd = new FormData();
+      fd.append('titolo', titolo.value);
+      fd.append('citta', citta.value);
+      fd.append('prezzo', prezzo.value);
+      fd.append('descrizione', desc.value);
+      document.querySelectorAll('input[name="rm"]:checked').forEach(c => fd.append('remove', c.value));
+      for (const fl of fotos.files) fd.append('fotos', fl);
+      const r = await fetch('/api/anunci/' + id, { method: 'PUT', body: fd, credentials: 'same-origin' });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Errore');
+      location.href = 'dashboard.html';
+    } catch (err) { msg.textContent = err.message; btn.disabled = false; }
+  };
+</script>
+</body>
+</html>
