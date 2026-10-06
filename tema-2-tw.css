@@ -87,3 +87,14 @@ body{background:#14060d !important}
 .skel-l{height:14px;border-radius:7px;margin:10px 0}
 .skel-l.short{width:45%}
 @keyframes skel{to{background-position:-200% 0}}
+
+/* ---- Hero logado: igual ao guest, sem botões login/cadastro ---- */
+.hero.is-logged .hero-cta{display:none !important}
+
+/* ---- PC: hero todo centralizado e alinhado ---- */
+@media (min-width:700px){
+  .hero{text-align:center}
+  .hero h1{margin-left:auto;margin-right:auto;max-width:640px}
+  .hero p{margin-left:auto;margin-right:auto}
+  .hero ul{justify-content:center}
+}

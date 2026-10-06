@@ -398,7 +398,7 @@ app.get(["/", "/index.html"], (req, res) => {
     const corpo = filtrati.length ? filtrati.map(cardHTML).join("") : "<p>Nessun annuncio trovato. Prova a cambiare i filtri.</p>";
     const opts = [...new Set(lista.map((a) => a.citta).filter(Boolean))].sort()
       .map((c) => `<option value="${escH(c)}"${c === citta ? " selected" : ""}>${escH(c)}</option>`).join("");
-    if (u) html = html.replace('<section class="hero" id="guest-hero">', '<section class="hero" id="guest-hero" hidden>');
+    if (u) html = html.replace('<section class="hero" id="guest-hero">', '<section class="hero is-logged" id="guest-hero">');
     if (qRaw) html = html.replace('name="q" id="fq"', `name="q" id="fq" value="${escH(qRaw)}"`);
     html = html.replace('<select name="citta" id="fcitta">\n        <option value="">Tutte le città</option>',
       `<select name="citta" id="fcitta">\n        <option value="">Tutte le città</option>${opts}`);

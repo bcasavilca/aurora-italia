@@ -106,8 +106,8 @@
   const qsInit = new URLSearchParams(location.search);
   fqEl.value = qsInit.get('q') || '';
   nris.textContent = 'Ricerca in corso…';
-  // Se há cookie de sessão, provavelmente logado: esconde hero já (confirmado via /api/me abaixo).
-  if (document.cookie.includes('vetrina_session')) heroEl.hidden = true;
+  // Se há cookie de sessão, provavelmente logado: esconde só os botões (confirmado via /api/me abaixo).
+  if (document.cookie.includes('vetrina_session')) heroEl.classList.add('is-logged');
   let lista = [];
   function popolaCitta(selezionata) {
     selEl.innerHTML = '<option value="">Tutte le città</option>';
@@ -155,9 +155,9 @@
     try {
       const me = await (await fetch('/api/me', { credentials: 'same-origin' })).json();
       user = me.user;
-      heroEl.hidden = !!user;
+      heroEl.classList.toggle('is-logged', !!user);
     } catch {
-      if (!document.cookie.includes('vetrina_session')) heroEl.hidden = false;
+      heroEl.classList.toggle('is-logged', document.cookie.includes('vetrina_session'));
     }
     if (!user && !localStorage.getItem('aurora18')) {
       const g = document.getElementById('gate');
