@@ -402,13 +402,8 @@ function renderHome(req, res, slug) {
     const opts = [...new Set(lista.map((a) => a.citta).filter(Boolean))].sort()
       .map((c) => `<option value="${escH(c)}"${c === citta ? " selected" : ""}>${escH(c)}</option>`).join("");
     if (u) html = html.replace('<section class="hero" id="guest-hero">', '<section class="hero is-logged" id="guest-hero">');
-    if (u) {
-      // Menu logado già dal server: niente "Accedi" nemmeno per un istante.
-      html = html.replace('<a href="dashboard.html" hidden>', '<a href="dashboard.html">');
-      html = html.replace('<span class="email" hidden></span>', `<span class="email">${escH(u.email)}</span>`);
-      html = html.replace('<a href="login.html" class="btn">Accedi</a>', '<a href="login.html" class="btn" hidden>Accedi</a>');
-      html = html.replace('<button class="btn link-btn" id="esci" hidden>Esci</button>', '<button class="btn link-btn" id="esci">Esci</button>');
-    }
+    // Menu logado già dal server: niente "Accedi" nemmeno per un istante.
+    if (u) html = ssrMenu(html, u);
     if (qRaw) html = html.replace('name="q" id="fq"', `name="q" id="fq" value="${escH(qRaw)}"`);
     html = html.replace('<select name="citta" id="fcitta">\n        <option value="">Tutte le città</option>',
       `<select name="citta" id="fcitta">\n        <option value="">Tutte le città</option>${opts}`);
@@ -428,6 +423,25 @@ function renderHome(req, res, slug) {
 }
 app.get(["/", "/index.html"], (req, res) => renderHome(req, res, null));
 app.get(["/bergamo", "/milano", "/seriate"], (req, res) => renderHome(req, res, req.path.slice(1)));
+
+// ---- SSR menu logado em todas as páginas (niente "Accedi" dopo il login) ----
+function ssrMenu(html, u) {
+  html = html.replace('<a href="dashboard.html" hidden>', '<a href="dashboard.html">');
+  html = html.replace('<span class="email" hidden></span>', `<span class="email">${escH(u.email)}</span>`);
+  html = html.replace('<a href="login.html" class="btn">Accedi</a>', '<a href="login.html" class="btn" hidden>Accedi</a>');
+  html = html.replace('<button class="btn link-btn" id="esci" hidden>Esci</button>', '<button class="btn link-btn" id="esci">Esci</button>');
+  return html;
+}
+app.get(["/login.html", "/registrar.html", "/recuperar.html", "/reset.html", "/anuncio.html", "/chat.html", "/dashboard.html", "/publicar.html", "/editar.html", "/termini.html", "/privacy.html", "/segnala.html"], (req, res, next) => {
+  try {
+    const u = currentUser(req);
+    if (!u) return next();
+    let html = fs.readFileSync(path.join(__dirname, req.path.slice(1)), "utf8");
+    res.set("Cache-Control", "no-store").type("html").send(ssrMenu(html, u));
+  } catch {
+    next();
+  }
+});
 
 // static por ultimo
 app.use("/fotos", express.static(path.join(__dirname, "fotos")));
