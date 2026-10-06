@@ -84,6 +84,10 @@
 <script src="dados.js"></script>
 <script>
   const grade = document.getElementById('grade');
+  const nris = document.getElementById('nris');
+  const fqEl = document.getElementById('fq');
+  const selEl = document.getElementById('fcitta');
+  const heroEl = document.getElementById('guest-hero');
   function card(a) {
     const el = document.createElement('article');
     el.className = 'card';
@@ -99,38 +103,32 @@
       </div>`;
     grade.appendChild(el);
   }
-  (async () => {
-    let user = null;
-    try {
-      const me = await (await fetch('/api/me', { credentials: 'same-origin' })).json();
-      user = me.user;
-      if (user) document.getElementById('guest-hero').hidden = true;
-    } catch {}
-    if (!user && !localStorage.getItem('aurora18')) {
-      const g = document.getElementById('gate');
-      g.hidden = false;
-      document.getElementById('gate-si').onclick = () => { localStorage.setItem('aurora18', '1'); g.hidden = true; };
-      document.getElementById('gate-no').onclick = () => { location.href = 'https://www.google.com'; };
-    }
-    let lista = [];
-    try {
-      const r = await fetch('/api/anunci');
-      const d = await r.json();
-      if (Array.isArray(d) && d.length) lista = d;
-    } catch {}
-    if (!lista.length) lista = ANUNCI;
-    // città dinamiche
-    const qs = new URLSearchParams(location.search);
-    const q = (qs.get('q') || '').toLowerCase();
-    const citta = qs.get('citta') || '';
-    fq.value = qs.get('q') || '';
-    const sel = fcitta;
+  // Sincrono (sem await): preenche campo + estado loading antes do 1º paint — nada pisca vazio.
+  const qsInit = new URLSearchParams(location.search);
+  fqEl.value = qsInit.get('q') || '';
+  nris.textContent = 'Ricerca in corso…';
+  // Se há cookie de sessão, provavelmente logado: esconde hero já (confirmado via /api/me abaixo).
+  if (document.cookie.includes('vetrina_session')) heroEl.hidden = true;
+  let lista = [];
+  function popolaCitta(selezionata) {
+    selEl.innerHTML = '<option value="">Tutte le città</option>';
     [...new Set(lista.map(a => a.citta).filter(Boolean))].sort().forEach(c => {
       const o = document.createElement('option');
       o.textContent = c;
-      sel.appendChild(o);
+      selEl.appendChild(o);
     });
-    sel.value = citta;
+    selEl.value = selezionata || '';
+  }
+  function applicaFiltri(push) {
+    const q = (fqEl.value || '').toLowerCase().trim();
+    const citta = selEl.value || '';
+    if (push) {
+      const qs = new URLSearchParams();
+      if (fqEl.value) qs.set('q', fqEl.value);
+      if (citta) qs.set('citta', citta);
+      const url = qs.toString() ? 'index.html?' + qs.toString() : 'index.html';
+      history.pushState(null, '', url);
+    }
     const res = lista.filter(a => {
       const testo = `${a.titolo} ${a.descrizione || ''} ${a.citta}`.toLowerCase();
       if (q && !testo.includes(q)) return false;
@@ -141,6 +139,41 @@
     nris.textContent = `${res.length} ${res.length === 1 ? 'annuncio trovato' : 'annunci trovati'}`;
     if (!res.length) grade.innerHTML = '<p>Nessun annuncio trovato. Prova a cambiare i filtri.</p>';
     res.forEach(card);
+  }
+  // Busca sem reload: filtra na hora (acaba o flash da tela principal).
+  document.getElementById('busca-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    applicaFiltri(true);
+  });
+  window.addEventListener('popstate', () => {
+    const qs = new URLSearchParams(location.search);
+    fqEl.value = qs.get('q') || '';
+    selEl.value = qs.get('citta') || '';
+    applicaFiltri(false);
+  });
+  (async () => {
+    let user = null;
+    try {
+      const me = await (await fetch('/api/me', { credentials: 'same-origin' })).json();
+      user = me.user;
+      heroEl.hidden = !!user;
+    } catch {
+      if (!document.cookie.includes('vetrina_session')) heroEl.hidden = false;
+    }
+    if (!user && !localStorage.getItem('aurora18')) {
+      const g = document.getElementById('gate');
+      g.hidden = false;
+      document.getElementById('gate-si').onclick = () => { localStorage.setItem('aurora18', '1'); g.hidden = true; };
+      document.getElementById('gate-no').onclick = () => { location.href = 'https://www.google.com'; };
+    }
+    try {
+      const r = await fetch('/api/anunci');
+      const d = await r.json();
+      if (Array.isArray(d) && d.length) lista = d;
+    } catch {}
+    if (!lista.length) lista = ANUNCI;
+    popolaCitta(qsInit.get('citta') || '');
+    applicaFiltri(false);
   })();
 </script>
 <script src="menu.js"></script>
