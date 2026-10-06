@@ -33,6 +33,7 @@ if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
 }
 const FROM = process.env.EMAIL_FROM || "Aurora <onboarding@resend.dev>";
+const { resetPassword } = require("./email");
 
 const app = express();
 app.disable("x-powered-by");
@@ -255,7 +256,7 @@ app.post("/api/forgot", async (req, res) => {
       from: FROM,
       to: email,
       subject: "Reimposta la tua password — Aurora",
-      html: `<p>Ciao, clicca qui per reimpostare: <a href="${link}">Reimposta password</a> (vale 1 ora).</p>`,
+      html: resetPassword(link),
     });
   } catch (e) {
     console.log(`[RESET] link para ${email}: ${link} (email falhou: ${e.message})`);
