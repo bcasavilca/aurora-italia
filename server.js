@@ -110,13 +110,7 @@ app.get("/api/me", (req, res) => {
   res.json({ user: u ? { email: u.email } : null });
 });
 
-// ---- ANUNCI (funzionalità 2) ----
-const SEED = [
-  { id: "s1", titolo: "Massaggio relax Bergamo", citta: "Bergamo", servizi: ["massaggio", "relax"], prezzo: 80, foto: "", descrizione: "" },
-  { id: "s2", titolo: "Compagnia per cena Milano", citta: "Milano", servizi: ["compagnia", "cena"], prezzo: 150, foto: "", descrizione: "" },
-  { id: "s3", titolo: "Lezioni private Isola Rizza", citta: "Isola Rizza", servizi: ["lezioni"], prezzo: 30, foto: "", descrizione: "" },
-];
-
+// ---- ANUNCI: solo annunci reali pubblicati (niente seed/demo) ----
 app.get("/api/anunci", (req, res) => {
   const db = load();
   const agora = new Date().toISOString();
@@ -126,7 +120,7 @@ app.get("/api/anunci", (req, res) => {
     const dbb = b.destaqueAte && b.destaqueAte > agora ? 0 : 1;
     return da - dbb;
   });
-  res.json([...mine, ...SEED]);
+  res.json(mine);
 });
 
 // ---- PROMO (codici lancio: evidenza gratis) ----
