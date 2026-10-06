@@ -399,6 +399,13 @@ app.get(["/", "/index.html"], (req, res) => {
     const opts = [...new Set(lista.map((a) => a.citta).filter(Boolean))].sort()
       .map((c) => `<option value="${escH(c)}"${c === citta ? " selected" : ""}>${escH(c)}</option>`).join("");
     if (u) html = html.replace('<section class="hero" id="guest-hero">', '<section class="hero is-logged" id="guest-hero">');
+    if (u) {
+      // Menu logado già dal server: niente "Accedi" nemmeno per un istante.
+      html = html.replace('<a href="dashboard.html" hidden>', '<a href="dashboard.html">');
+      html = html.replace('<span class="email" hidden></span>', `<span class="email">${escH(u.email)}</span>`);
+      html = html.replace('<a href="login.html" class="btn">Accedi</a>', '<a href="login.html" class="btn" hidden>Accedi</a>');
+      html = html.replace('<button class="btn link-btn" id="esci" hidden>Esci</button>', '<button class="btn link-btn" id="esci">Esci</button>');
+    }
     if (qRaw) html = html.replace('name="q" id="fq"', `name="q" id="fq" value="${escH(qRaw)}"`);
     html = html.replace('<select name="citta" id="fcitta">\n        <option value="">Tutte le città</option>',
       `<select name="citta" id="fcitta">\n        <option value="">Tutte le città</option>${opts}`);
@@ -406,7 +413,7 @@ app.get(["/", "/index.html"], (req, res) => {
     const ini = html.indexOf("<!--GRADE-INI-->");
     const fim = html.indexOf("<!--GRADE-FIM-->");
     if (ini !== -1 && fim !== -1) html = html.slice(0, ini) + corpo + html.slice(fim + "<!--GRADE-FIM-->".length);
-    res.type("html").send(html);
+    res.set("Cache-Control", "no-store").type("html").send(html);
   } catch {
     res.sendFile(HOME_FILE);
   }
