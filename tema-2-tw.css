@@ -9,3 +9,74 @@ body{background:#14060d !important}
 .foto img{transition:transform .4s ease}.card:hover .foto img{transform:scale(1.05)}
 .btn{transition:filter .2s,transform .2s}.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
 .busca{box-shadow:0 8px 32px rgba(0,0,0,.4)}
+
+/* ---- Titulos (Tailwind preflight zera h1/h3: reafirma) ---- */
+.form-pag h1,.detalhe h1,main.wrap>h1{font-size:28px !important;font-weight:800 !important;color:#fff !important;margin:20px 0 12px !important;line-height:1.2}
+.card-corpo h3{font-size:17px !important;font-weight:700 !important;margin:0 0 4px}
+.card-corpo h3 a{color:#fff !important}
+
+/* ---- Forms (login/registrar/recuperar/reset/publicar/editar) ---- */
+.form-pag{background:#1f0a14;border:1px solid #3d1425;border-radius:20px;padding:28px 22px !important;margin:24px auto !important;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.form-pag form{display:grid;gap:14px;margin-top:8px}
+.form-pag label{display:grid;gap:8px;color:#e8c4d0;font-size:14px;font-weight:600}
+.form-pag input,.form-pag textarea,.form-pag select{background:#241019 !important;border:1px solid #4d1a2e !important;border-radius:12px !important;color:#fff !important;padding:14px !important;width:100%}
+.form-pag input:focus,.form-pag textarea:focus{border-color:#ff2e63 !important;outline:none;box-shadow:0 0 0 3px rgba(255,46,99,.2)}
+.form-pag input[type=file]{padding:10px !important}
+.form-pag button{background:linear-gradient(135deg,#ff2e63,#ff6b35) !important;color:#fff !important;font-weight:800;border:0;border-radius:999px !important;padding:15px !important;cursor:pointer;font-size:16px}
+.form-pag button:disabled{opacity:.6;cursor:wait}
+.form-pag button:not(:disabled):hover{filter:brightness(1.1)}
+#msg{color:#ffb3c6;margin-top:10px}
+.links{margin-top:16px;text-align:center;color:#a08090}
+.links a{color:#ff6b9d !important;font-weight:600}
+.mini img{border:2px solid #4d1a2e !important;border-radius:10px !important}
+
+/* ---- Detalhe anuncio ---- */
+.detalhe{padding-bottom:110px !important}
+.detalhe>a:first-child{color:#ff6b9d !important;font-weight:600}
+.foto-grande{border:2px solid #3d1425 !important;border-radius:20px !important;overflow:hidden;background:#241019 !important}
+.gal img{border:2px solid #3d1425 !important;border-radius:10px !important}
+.gal img.sel{border-color:#ff2e63 !important;opacity:1 !important}
+#info{color:#ff6b35 !important;font-size:20px;font-weight:800;margin:10px 0}
+#desc{color:#e8c4d0 !important;line-height:1.6}
+#contatta{display:block;text-align:center;margin-top:18px;font-size:18px !important;padding:16px 32px !important}
+
+/* ---- Chat (vence o <style> inline: usa !important) ---- */
+.lista{background:#1f0a14 !important;border:1px solid #3d1425 !important;border-radius:14px !important}
+.conv{border-bottom:1px solid #3d1425 !important;color:#fff !important}
+.conv.sel{background:#3a1224 !important}
+.conv .u{color:#c9a0ae !important}
+.badge{background:linear-gradient(135deg,#ff2e63,#ff6b35) !important;color:#fff !important}
+.painel{background:#14060d !important;border:1px solid #3d1425 !important;border-radius:14px !important}
+.chead{background:#1f0a14 !important;border-bottom:1px solid #3d1425 !important}
+.chead .nm{color:#fff !important}
+.chat-box{background:#14060d !important}
+.msg{border-radius:14px !important}
+.outro{background:#2a1220 !important;color:#fff !important}
+.meu{background:linear-gradient(135deg,#ff2e63,#ff6b35) !important;color:#fff !important}
+.mtime{color:rgba(255,255,255,.65) !important}
+.date-sep{color:#a08090 !important}
+.date-sep::before,.date-sep::after{background:#3d1425 !important}
+.chat-form{background:#1f0a14 !important;border-top:1px solid #3d1425 !important}
+.chat-form input{color:#fff !important}
+.chat-form button{background:linear-gradient(135deg,#ff2e63,#ff6b35) !important;color:#fff !important;border-radius:999px !important;width:44px;height:44px;font-size:18px !important}
+
+/* ---- Dashboard ---- */
+.dash-top h1{font-size:28px !important}
+.dash-acao .btn{display:inline-block;margin-top:10px}
+.card-corpo .btn{display:inline-block;margin:6px 6px 0 0;padding:9px 18px !important;font-size:14px}
+.card-corpo .btn.sec{border:2px solid #ff2e63 !important;color:#fff !important;background:transparent !important}
+
+/* ---- Gate 18+ / rodape / menu ---- */
+.gate-box{background:#1f0a14 !important;border:1px solid #ff2e6355 !important;border-radius:20px !important}
+.gate-box h1{color:#fff !important}
+.drop{background:#1f0a14 !important;border:1px solid #3d1425 !important}
+.drop a{color:#f5dbe3 !important}
+.drop a:hover,.drop a.ativo{background:#3a1224 !important}
+.rodape{color:#a08090 !important;border-top:1px solid #3d1425 !important}
+.rodape a{color:#ff6b9d !important}
+
+/* ---- Mobile ---- */
+@media (max-width:640px){
+  .form-pag{margin:16px 12px !important;padding:22px 16px !important}
+  #contatta{position:sticky;bottom:12px}
+}
