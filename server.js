@@ -175,12 +175,13 @@ app.put("/api/anunci/:id", upload ? upload.array("fotos", 5) : (req, res, next) 
   const a = (db.anunci || []).find((x) => String(x.id) === String(req.params.id));
   if (!a) return res.status(404).json({ error: "Non trovato" });
   if (a.email !== u.email) return res.status(403).json({ error: "Non tuo" });
-  const { titolo, citta, servizi, prezzo, descrizione } = req.body;
+  const { titolo, citta, servizi, prezzo, descrizione, verificata } = req.body;
   if (titolo) a.titolo = String(titolo).slice(0, 80);
   if (citta) a.citta = String(citta).slice(0, 60);
   if (servizi !== undefined) a.servizi = String(servizi).split(",").map((s) => s.trim()).filter(Boolean).slice(0, 10);
   if (prezzo !== undefined && prezzo !== "") a.prezzo = Number(prezzo) || 0;
   if (descrizione !== undefined) a.descrizione = String(descrizione).slice(0, 2000);
+  if (verificata !== undefined) a.verificata = verificata ? 1 : 0;
   // remove fotos marcadas
   let rm = req.body.remove || [];
   if (!Array.isArray(rm)) rm = [rm];
@@ -360,7 +361,7 @@ app.post("/api/segnalazioni", (req, res) => {
 const HOME_FILE = path.join(__dirname, "index.html");
 const escH = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function cardHTML(a) {
-  return `<article class="card"><a href="anuncio.html?id=${escH(a.id)}"><div class="foto">${a.foto ? `<img src="${escH(a.foto)}" alt="${escH(a.titolo)}" loading="lazy">` : "<span>Nessuna foto</span>"}</div></a><div class="card-corpo"><h3><a href="anuncio.html?id=${escH(a.id)}">${escH(a.titolo)}</a></h3><p class="citta">${escH(a.citta)}</p><p class="preco">${escH(a.prezzo)} €</p><a class="ver" href="anuncio.html?id=${escH(a.id)}">Vedi annuncio →</a></div></article>`;
+  return `<article class="card"><a href="anuncio.html?id=${escH(a.id)}"><div class="foto">${a.foto ? `<img src="${escH(a.foto)}" alt="${escH(a.titolo)}" loading="lazy">` : "<span>Nessuna foto</span>"}<button class="fav-btn" data-fav="${escH(a.id)}" aria-label="Salva nei preferiti">♥</button></div></a><div class="card-corpo">${a.verificata ? `<span class="verificata">✔ Verificata</span>` : ""}<h3><a href="anuncio.html?id=${escH(a.id)}">${escH(a.titolo)}</a></h3><p class="citta">${escH(a.citta)}</p><p class="preco">${escH(a.prezzo)} €</p><a class="ver" href="anuncio.html?id=${escH(a.id)}">Vedi annuncio →</a></div></article>`;
 }
 const CITTA = {
   bergamo: {

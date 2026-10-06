@@ -63,10 +63,12 @@
         <a href="anuncio.html?id=${a.id}"><div class="foto">${a.foto ? `<img src="${a.foto}" alt="">` : '<span>Nessuna foto</span>'}</div></a>
         <div class="card-corpo">
           ${ev ? `<span class="eta">⭐ In evidenza fino al ${a.destaqueAte.slice(0, 10).split('-').reverse().join('/')}</span>` : ''}
+          ${a.verificata ? `<span class="verificata">✔ Verificata</span>` : ''}
           <h3><a href="anuncio.html?id=${a.id}">${a.titolo}</a></h3>
           <p class="citta">${a.citta} · ${a.prezzo} €</p>
           <a class="btn sec" href="editar.html?id=${a.id}">Modifica</a>
           <button class="btn" data-del="${a.id}">Elimina</button>
+          <button class="btn sec" data-ver="${a.id}" data-state="${a.verificata ? 1 : 0}">${a.verificata ? '✓ Verificata' : 'Verifica'}</button>
         </div>`;
       grade.appendChild(el);
     });
@@ -77,6 +79,13 @@
         await fetch('/api/anunci/' + b.dataset.del, { method: 'DELETE', credentials: 'same-origin' });
         location.reload();
         return;
+      }
+      const v = e.target.closest('[data-ver]');
+      if (v) {
+        const r = await fetch('/api/anunci/' + v.dataset.ver, { method: 'PUT', headers: {'Content-Type':'application/json'},
+          credentials: 'same-origin', body: JSON.stringify({ verificata: v.dataset.state === '1' ? 0 : 1 }) });
+        if (!r.ok) { alert('Errore'); return; }
+        location.reload();
       }
     };
   })();

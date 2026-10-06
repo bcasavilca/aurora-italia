@@ -69,7 +69,7 @@
   </section>
 
   <section>
-    <h2>Annunci recenti</h2>
+    <div class="recenti-head"><h2>Annunci recenti</h2><button id="favToggle" class="fav-toggle" aria-pressed="false">♥ Preferiti</button></div>
     <p id="nris" style="color:#aaa">Ricerca in corso…</p>
     <div class="grade" id="grade"><!--GRADE-INI--><article class="card skel" aria-hidden="true"><div class="foto skel-foto"></div><div class="card-corpo"><div class="skel-l"></div><div class="skel-l short"></div></div></article><!--GRADE-FIM--></div>
   </section>
@@ -96,9 +96,10 @@
     el.className = 'card';
     el.innerHTML = `
       <a href="anuncio.html?id=${a.id}">
-        <div class="foto">${a.foto ? `<img src="${a.foto}" alt="${a.titolo}" loading="lazy">` : '<span>Nessuna foto</span>'}</div>
+        <div class="foto">${a.foto ? `<img src="${a.foto}" alt="${a.titolo}" loading="lazy">` : '<span>Nessuna foto</span>'}<button class="fav-btn" data-fav="${a.id}" aria-label="Salva nei preferiti">♥</button></div>
       </a>
       <div class="card-corpo">
+        ${a.verificata ? `<span class="verificata">✔ Verificata</span>` : ''}
         <h3><a href="anuncio.html?id=${a.id}">${a.titolo}</a></h3>
         <p class="citta">${a.citta}</p>
         <p class="preco">${a.prezzo} €</p>
@@ -113,6 +114,15 @@
   // Se há cookie de sessão, provavelmente logado: esconde só os botões (confirmado via /api/me abaixo).
   if (document.cookie.includes('vetrina_session')) heroEl.classList.add('is-logged');
   let lista = [];
+  let soloFav = false;
+  const getFav = () => { try { return JSON.parse(localStorage.getItem('auroraFav') || '[]'); } catch { return []; } };
+  const isFav = (id) => getFav().some((x) => String(x) === String(id));
+  function setFav(id, on) {
+    let favs = getFav().map(String);
+    id = String(id);
+    favs = on ? [...new Set([...favs, id])] : favs.filter((x) => x !== id);
+    localStorage.setItem('auroraFav', JSON.stringify(favs));
+  }
   function popolaCitta(selezionata) {
     selEl.innerHTML = '<option value="">Tutte le città</option>';
     [...new Set(lista.map(a => a.citta).filter(Boolean))].sort().forEach(c => {
@@ -136,17 +146,34 @@
       const testo = `${a.titolo} ${a.descrizione || ''} ${a.citta}`.toLowerCase();
       if (q && !testo.includes(q)) return false;
       if (citta && a.citta !== citta) return false;
+      if (soloFav && !isFav(a.id)) return false;
       return true;
     });
     grade.innerHTML = '';
     nris.textContent = `${res.length} ${res.length === 1 ? 'annuncio trovato' : 'annunci trovati'}`;
-    if (!res.length) grade.innerHTML = '<p>Nessun annuncio trovato. Prova a cambiare i filtri.</p>';
+    if (!res.length) grade.innerHTML = soloFav ? '<p>Nessun preferito salvato. Tocca il ♥ su un annuncio.</p>' : '<p>Nessun annuncio trovato. Prova a cambiare i filtri.</p>';
     res.forEach(card);
+    grade.querySelectorAll('[data-fav]').forEach((b) => b.classList.toggle('on', isFav(b.dataset.fav)));
   }
   // Busca sem reload: filtra na hora (acaba o flash da tela principal).
   document.getElementById('busca-form').addEventListener('submit', (e) => {
     e.preventDefault();
     applicaFiltri(true);
+  });
+  grade.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-fav]');
+    if (!b) return;
+    e.preventDefault();
+    const on = !b.classList.contains('on');
+    setFav(b.dataset.fav, on);
+    b.classList.toggle('on', on);
+    if (soloFav) applicaFiltri(false);
+  });
+  document.getElementById('favToggle').addEventListener('click', (e) => {
+    soloFav = !soloFav;
+    e.currentTarget.classList.toggle('on', soloFav);
+    e.currentTarget.setAttribute('aria-pressed', String(soloFav));
+    applicaFiltri(false);
   });
   window.addEventListener('popstate', () => {
     const qs = new URLSearchParams(location.search);

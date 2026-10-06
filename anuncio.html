@@ -37,6 +37,7 @@
   <p id="info"></p>
   <p id="desc">Descrizione di esempio. Qui andranno foto, prezzo e pulsante contatta.</p>
   <a class="btn grande" id="contatta" href="chat.html">Contatta</a>
+  <button class="btn sec grande" id="favBtn">♡ Salva nei preferiti</button>
   <p class="links"><a id="segnala" href="segnala.html">Segnala questo annuncio</a></p>
 </main>
 <script src="dados.js"></script>
@@ -50,7 +51,21 @@
       if (Array.isArray(d)) { const f = d.find(x => String(x.id) === String(id)); if (f) a = f; }
     } catch {}
     document.getElementById('titolo').textContent = a.titolo;
-    document.getElementById('info').textContent = `${a.citta} · ${a.prezzo} €`;
+    document.getElementById('info').innerHTML = `${a.citta} · ${a.prezzo} €${a.verificata ? ' <span class="verificata">✔ Verificata</span>' : ''}`;
+    const favBtn = document.getElementById('favBtn');
+    const getFav = () => { try { return JSON.parse(localStorage.getItem('auroraFav') || '[]').map(String); } catch { return []; } };
+    const marcaFav = () => {
+      const on = getFav().includes(String(a.id));
+      favBtn.textContent = on ? '♥ Nei preferiti' : '♡ Salva nei preferiti';
+    };
+    marcaFav();
+    favBtn.onclick = () => {
+      let favs = getFav();
+      const id = String(a.id);
+      favs = favs.includes(id) ? favs.filter((x) => x !== id) : [...favs, id];
+      localStorage.setItem('auroraFav', JSON.stringify(favs));
+      marcaFav();
+    };
     if (a.descrizione) document.getElementById('desc').textContent = a.descrizione;
     const lista = (a.fotos && a.fotos.length ? a.fotos : [a.foto].filter(Boolean));
     const fotoEl = document.getElementById('foto');
