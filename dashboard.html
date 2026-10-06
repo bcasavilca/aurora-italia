@@ -38,6 +38,10 @@
   <section>
     <div class="grade" id="grade"></div>
   </section>
+  <section id="modsec" hidden>
+    <h2>Recensioni da approvare</h2>
+    <div id="modlist"></div>
+  </section>
 </main>
 <script src="menu.js"></script>
 <script>
@@ -54,11 +58,14 @@
     try { tutti = await (await fetch('/api/anunci')).json(); } catch {}
     const miei = tutti.filter(a => a.email === user.email);
     stato.textContent = `${miei.length} ${miei.length === 1 ? 'annuncio' : 'annunci'}`;
+    let stats = {};
+    try { stats = await (await fetch('/api/stats', { credentials: 'same-origin' })).json(); } catch {}
     if (!miei.length) { grade.innerHTML = '<p>Nessun annuncio. Pubblica il primo!</p>'; return; }
     miei.forEach(a => {
       const el = document.createElement('article');
       el.className = 'card';
       const ev = a.destaqueAte && a.destaqueAte > new Date().toISOString();
+      const st = stats[a.id] || { visite: 0, contatti: 0 };
       el.innerHTML = `
         <a href="anuncio.html?id=${a.id}"><div class="foto">${a.foto ? `<img src="${a.foto}" alt="">` : '<span>Nessuna foto</span>'}</div></a>
         <div class="card-corpo">
@@ -66,14 +73,14 @@
           ${a.verificata ? `<span class="verificata">✔ Verificata</span>` : ''}
           <h3><a href="anuncio.html?id=${a.id}">${a.titolo}</a></h3>
           <p class="citta">${a.citta} · ${a.prezzo} €</p>
+          <p class="stat">👁 ${st.visite} visite · ✉️ ${st.contatti} contatti</p>
           <a class="btn sec" href="editar.html?id=${a.id}">Modifica</a>
           <button class="btn" data-del="${a.id}">Elimina</button>
           <button class="btn sec" data-ver="${a.id}" data-state="${a.verificata ? 1 : 0}">${a.verificata ? '✓ Verificata' : 'Verifica'}</button>
         </div>`;
       grade.appendChild(el);
     });
-    grade.onclick = async (e) => {
-      const b = e.target.closest('[data-del]');
+    grade.onclick = async (e) => {      const b = e.target.closest('[data-del]');
       if (b) {
         if (!confirm('Eliminare questo annuncio?')) return;
         await fetch('/api/anunci/' + b.dataset.del, { method: 'DELETE', credentials: 'same-origin' });
@@ -88,6 +95,23 @@
         location.reload();
       }
     };
+    // Moderação de recensioni
+    try {
+      const pend = await (await fetch('/api/commenti/pending', { credentials: 'same-origin' })).json();
+      if (Array.isArray(pend) && pend.length) {
+        document.getElementById('modsec').hidden = false;
+        const ml = document.getElementById('modlist');
+        const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        ml.innerHTML = pend.map((c) => `<div class="rec"><strong>${esc(c.nome)}</strong> <span class="citta">su ${esc(c.anuncioTitolo)}</span><p>${esc(c.testo)}</p><button class="btn sec" data-mod="ok" data-id="${c.id}">Approva</button> <button class="btn" data-mod="no" data-id="${c.id}">Scarta</button></div>`).join('');
+        ml.onclick = async (e) => {
+          const b = e.target.closest('[data-mod]');
+          if (!b) return;
+          await fetch('/api/commenti/' + b.dataset.id + '/moderar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin', body: JSON.stringify({ azione: b.dataset.mod }) });
+          location.reload();
+        };
+      }
+    } catch {}
   })();
 </script>
 </body>

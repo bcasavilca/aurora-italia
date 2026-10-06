@@ -93,6 +93,32 @@ body{background:#14060d !important}
 .fav-toggle.on{background:linear-gradient(135deg,#ff2e63,#ff6b35);color:#fff;border-color:transparent}
 #favBtn{margin-left:8px}
 
+/* ---- Commenti / recensioni ---- */
+.commenti{margin:28px 0 40px}
+.commenti h2{font-size:22px !important;margin-bottom:12px}
+.rec{background:#1f0a14;border:1px solid #3d1425;border-radius:14px;padding:14px 16px;margin:10px 0}
+.rec strong{color:#fff}
+.rec p{margin:6px 0 0;color:#e8c4d0;line-height:1.55}
+.rec .btn{margin:8px 6px 0 0;padding:8px 16px !important;font-size:13px}
+.commenti form{display:grid;gap:12px;margin-top:12px;max-width:520px}
+.commenti label{display:grid;gap:6px;color:#e8c4d0;font-size:14px}
+.commenti input,.commenti textarea{background:#241019 !important;border:1px solid #4d1a2e !important;border-radius:12px !important;color:#fff !important;padding:12px !important;width:100%}
+.commenti button{background:linear-gradient(135deg,#ff2e63,#ff6b35) !important;color:#fff !important;font-weight:800;border:0;border-radius:999px !important;padding:13px !important;cursor:pointer}
+
+/* ---- WhatsApp + stats ---- */
+.wa-btn{background:#25d366 !important;margin-left:8px}
+.stat{color:#ff8fab !important;font-size:13px;font-weight:700;margin:6px 0}
+
+/* ---- Inserzioniste ---- */
+.vantaggi{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 8px}
+.vant{background:#1f0a14;border:1px solid #3d1425;border-radius:16px;padding:20px}
+.vant h3{margin:0 0 8px;font-size:17px;color:#fff}
+.vant p{margin:0;color:#c9a0ae;font-size:14px;line-height:1.6}
+.passi{text-align:center;padding:20px 0 48px}
+.passi h2{font-size:24px}
+.passi p{color:#e8c4d0}
+@media (max-width:640px){.vantaggi{grid-template-columns:1fr}}
+
 /* ---- SEO locale ---- */
 .seo-citta{max-width:720px;color:#c9a0ae;font-size:14px;line-height:1.7;margin:8px 0 40px}
 

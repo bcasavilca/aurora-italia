@@ -7,6 +7,7 @@
   <url><loc>https://aurora-italia.duckdns.org/termini.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://aurora-italia.duckdns.org/privacy.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://aurora-italia.duckdns.org/segnala.html</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://aurora-italia.duckdns.org/inserzioniste.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://aurora-italia.duckdns.org/login.html</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://aurora-italia.duckdns.org/registrar.html</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
 </urlset>

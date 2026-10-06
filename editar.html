@@ -41,6 +41,7 @@
     <label>Titolo<input id="titolo" required maxlength="80"></label>
     <label>Città<input id="citta" required maxlength="60"></label>
     <label>Prezzo €<input id="prezzo" type="number" min="0"></label>
+    <label>WhatsApp (facoltativo)<input id="wa" inputmode="tel" placeholder="Es. 3401234567"></label>
     <label>Descrizione<textarea id="desc" rows="4" maxlength="2000"></textarea></label>
     <div><p>Foto attuali (spunta per rimuovere):</p><div id="atual"></div></div>
     <label>Aggiungi foto<input id="fotos" type="file" accept="image/*" multiple></label>
@@ -66,6 +67,7 @@
     titolo.value = AD.titolo || '';
     citta.value = AD.citta || '';
     prezzo.value = AD.prezzo ?? '';
+    wa.value = AD.whatsapp || '';
     desc.value = AD.descrizione || '';
     atual.innerHTML = (AD.fotos && AD.fotos.length ? AD.fotos : [AD.foto].filter(Boolean))
       .map(x => `<span class="mini"><img src="${x}" alt=""><label><input type="checkbox" name="rm" value="${x}"> rimuovi</label></span>`).join('')
@@ -79,6 +81,7 @@
       fd.append('titolo', titolo.value);
       fd.append('citta', citta.value);
       fd.append('prezzo', prezzo.value);
+      fd.append('whatsapp', wa.value);
       fd.append('descrizione', desc.value);
       document.querySelectorAll('input[name="rm"]:checked').forEach(c => fd.append('remove', c.value));
       for (const fl of fotos.files) fd.append('fotos', fl);

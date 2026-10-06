@@ -19,6 +19,8 @@ function load() {
   } catch {
     db = { users: [], sessions: [], resets: [], anunci: [], conversas: [] };
   }
+  if (!db.commenti) db.commenti = [];
+  if (!db.stats) db.stats = {};
   return db;
 }
 function save(db) {
@@ -146,7 +148,7 @@ try {
 app.post("/api/anunci", upload ? upload.array("fotos", 5) : (req, res, next) => next(), (req, res) => {
   const u = currentUser(req);
   if (!u) return res.status(401).json({ error: "Devi accedere" });
-  const { titolo, citta, servizi, prezzo, descrizione } = req.body;
+  const { titolo, citta, servizi, prezzo, descrizione, whatsapp } = req.body;
   if (!titolo || !citta) return res.status(400).json({ error: "Titolo e città richiesti" });
   const db = load();
   const fotos = (req.files || []).map((f) => `/fotos/${f.filename}`);
@@ -157,6 +159,7 @@ app.post("/api/anunci", upload ? upload.array("fotos", 5) : (req, res, next) => 
     servizi: String(servizi || "").split(",").map((s) => s.trim()).filter(Boolean).slice(0, 10),
     prezzo: Number(prezzo) || 0,
     descrizione: String(descrizione || "").slice(0, 2000),
+    whatsapp: String(whatsapp || "").replace(/\D/g, "").slice(0, 15),
     foto: fotos[0] || "",
     fotos,
     email: u.email,
@@ -175,13 +178,14 @@ app.put("/api/anunci/:id", upload ? upload.array("fotos", 5) : (req, res, next) 
   const a = (db.anunci || []).find((x) => String(x.id) === String(req.params.id));
   if (!a) return res.status(404).json({ error: "Non trovato" });
   if (a.email !== u.email) return res.status(403).json({ error: "Non tuo" });
-  const { titolo, citta, servizi, prezzo, descrizione, verificata } = req.body;
+  const { titolo, citta, servizi, prezzo, descrizione, verificata, whatsapp } = req.body;
   if (titolo) a.titolo = String(titolo).slice(0, 80);
   if (citta) a.citta = String(citta).slice(0, 60);
   if (servizi !== undefined) a.servizi = String(servizi).split(",").map((s) => s.trim()).filter(Boolean).slice(0, 10);
   if (prezzo !== undefined && prezzo !== "") a.prezzo = Number(prezzo) || 0;
   if (descrizione !== undefined) a.descrizione = String(descrizione).slice(0, 2000);
   if (verificata !== undefined) a.verificata = verificata ? 1 : 0;
+  if (whatsapp !== undefined) a.whatsapp = String(whatsapp).replace(/\D/g, "").slice(0, 15);
   // remove fotos marcadas
   let rm = req.body.remove || [];
   if (!Array.isArray(rm)) rm = [rm];
@@ -308,6 +312,9 @@ app.post("/api/conversas", (req, res) => {
   }
   c.msgs.push({ id: crypto.randomUUID(), from: u.email, texto: String(texto).slice(0, 1000), at: new Date().toISOString() });
   c.seen[u.email] = new Date().toISOString();
+  db.stats = db.stats || {};
+  const st = db.stats[c.anuncioId] || (db.stats[c.anuncioId] = { visite: 0, contatti: 0 });
+  st.contatti += 1;
   save(db);
   res.json({ ok: true, id: c.id });
 });
@@ -337,6 +344,87 @@ app.post("/api/conversas/:id/msgs", (req, res) => {
   c.seen[u.email] = new Date().toISOString();
   save(db);
   res.json({ ok: true });
+});
+
+// ---- COMMENTI (moderati: pubblicati solo dopo approvazione) ----
+app.get("/api/anunci/:id/commenti", (req, res) => {
+  const db = load();
+  res.json((db.commenti || [])
+    .filter((c) => String(c.anuncioId) === String(req.params.id) && c.approvato)
+    .map(({ id, nome, testo, createdAt }) => ({ id, nome, testo, createdAt })));
+});
+
+app.post("/api/anunci/:id/commenti", (req, res) => {
+  const u = currentUser(req);
+  if (!u) return res.status(401).json({ error: "Devi accedere" });
+  const { nome, testo } = req.body || {};
+  if (!testo || !String(testo).trim()) return res.status(400).json({ error: "Testo richiesto" });
+  if (temLink(testo)) return res.status(400).json({ error: LINK_ERR });
+  const db = load();
+  const a = (db.anunci || []).find((x) => String(x.id) === String(req.params.id));
+  if (!a) return res.status(404).json({ error: "Annuncio non trovato" });
+  db.commenti = db.commenti || [];
+  db.commenti.push({
+    id: crypto.randomUUID(),
+    anuncioId: a.id,
+    nome: String(nome || u.email.split("@")[0]).slice(0, 40),
+    testo: String(testo).slice(0, 500),
+    from: u.email,
+    createdAt: new Date().toISOString(),
+    approvato: 0,
+  });
+  save(db);
+  res.json({ ok: true });
+});
+
+app.get("/api/commenti/pending", (req, res) => {
+  const u = currentUser(req);
+  if (!u) return res.status(401).json({ error: "Devi accedere" });
+  const db = load();
+  const miei = new Set((db.anunci || []).filter((a) => a.email === u.email).map((a) => String(a.id)));
+  res.json((db.commenti || [])
+    .filter((c) => !c.approvato && miei.has(String(c.anuncioId)))
+    .map((c) => {
+      const a = (db.anunci || []).find((x) => String(x.id) === String(c.anuncioId));
+      return { id: c.id, anuncioId: c.anuncioId, anuncioTitolo: a ? a.titolo : "", nome: c.nome, testo: c.testo, createdAt: c.createdAt };
+    }));
+});
+
+app.post("/api/commenti/:id/moderar", (req, res) => {
+  const u = currentUser(req);
+  if (!u) return res.status(401).json({ error: "Devi accedere" });
+  const db = load();
+  const c = (db.commenti || []).find((x) => String(x.id) === String(req.params.id));
+  if (!c) return res.status(404).json({ error: "Non trovato" });
+  const a = (db.anunci || []).find((x) => String(x.id) === String(c.anuncioId));
+  if (!a || a.email !== u.email) return res.status(403).json({ error: "Non tuo" });
+  if ((req.body || {}).azione === "ok") c.approvato = 1;
+  else db.commenti = db.commenti.filter((x) => String(x.id) !== String(c.id));
+  save(db);
+  res.json({ ok: true });
+});
+
+// ---- STATS (visite e contatti per la dashboard) ----
+app.post("/api/anunci/:id/vista", (req, res) => {
+  const db = load();
+  const a = (db.anunci || []).find((x) => String(x.id) === String(req.params.id));
+  if (!a) return res.status(404).json({ error: "Non trovato" });
+  db.stats = db.stats || {};
+  const s = db.stats[a.id] || (db.stats[a.id] = { visite: 0, contatti: 0 });
+  s.visite += 1;
+  save(db);
+  res.json({ ok: true });
+});
+
+app.get("/api/stats", (req, res) => {
+  const u = currentUser(req);
+  if (!u) return res.status(401).json({ error: "Devi accedere" });
+  const db = load();
+  const out = {};
+  (db.anunci || []).filter((a) => a.email === u.email).forEach((a) => {
+    out[a.id] = (db.stats && db.stats[a.id]) || { visite: 0, contatti: 0 };
+  });
+  res.json(out);
 });
 
 // ---- SEGNALAZIONI (Termini/Privacy/Segnala) ----
@@ -433,7 +521,7 @@ function ssrMenu(html, u) {
   html = html.replace('<button class="btn link-btn" id="esci" hidden>Esci</button>', '<button class="btn link-btn" id="esci">Esci</button>');
   return html;
 }
-app.get(["/login.html", "/registrar.html", "/recuperar.html", "/reset.html", "/anuncio.html", "/chat.html", "/dashboard.html", "/publicar.html", "/editar.html", "/termini.html", "/privacy.html", "/segnala.html"], (req, res, next) => {
+app.get(["/login.html", "/registrar.html", "/recuperar.html", "/reset.html", "/anuncio.html", "/chat.html", "/dashboard.html", "/publicar.html", "/editar.html", "/termini.html", "/privacy.html", "/segnala.html", "/inserzioniste.html"], (req, res, next) => {
   try {
     const u = currentUser(req);
     if (!u) return next();

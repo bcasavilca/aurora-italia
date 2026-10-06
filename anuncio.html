@@ -37,8 +37,20 @@
   <p id="info"></p>
   <p id="desc">Descrizione di esempio. Qui andranno foto, prezzo e pulsante contatta.</p>
   <a class="btn grande" id="contatta" href="chat.html">Contatta</a>
+  <a class="btn grande wa-btn" id="waBtn" href="#" hidden>WhatsApp</a>
   <button class="btn sec grande" id="favBtn">♡ Salva nei preferiti</button>
   <p class="links"><a id="segnala" href="segnala.html">Segnala questo annuncio</a></p>
+  <section class="commenti">
+    <h2>Recensioni</h2>
+    <div id="clist"><p>Caricamento...</p></div>
+    <form id="cform" hidden>
+      <label>Nome<input id="cnome" maxlength="40" placeholder="Il tuo nome"></label>
+      <label>Recensione<textarea id="ctesto" rows="3" required maxlength="500" placeholder="Com'è stato l'incontro?"></textarea></label>
+      <button type="submit">Pubblica (dopo approvazione)</button>
+    </form>
+    <p id="cmsg"></p>
+    <p class="links" id="clogin" hidden><a href="login.html">Accedi per scrivere una recensione</a></p>
+  </section>
 </main>
 <script src="dados.js"></script>
 <script>
@@ -83,6 +95,44 @@
     }
     document.getElementById('contatta').href = 'chat.html?anuncio=' + encodeURIComponent(a.id);
     document.getElementById('segnala').href = 'segnala.html?annuncio=' + encodeURIComponent(a.titolo + ' — ' + a.citta);
+    // WhatsApp diretto (se l'inserzionista lo ha condiviso)
+    if (a.whatsapp) {
+      const wa = document.getElementById('waBtn');
+      wa.hidden = false;
+      wa.href = 'https://wa.me/' + encodeURIComponent(a.whatsapp) + '?text=' + encodeURIComponent('Ciao, ti ho vista su Aurora (' + a.titolo + ').');
+    }
+    // Vista per le stats della dashboard
+    fetch('/api/anunci/' + encodeURIComponent(a.id) + '/vista', { method: 'POST' }).catch(() => {});
+    // Recensioni
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    async function caricaCommenti() {
+      try {
+        const r = await fetch('/api/anunci/' + encodeURIComponent(a.id) + '/commenti');
+        const cs = await r.json();
+        document.getElementById('clist').innerHTML = cs.length
+          ? cs.map((c) => `<div class="rec"><strong>${esc(c.nome)}</strong><p>${esc(c.testo)}</p></div>`).join('')
+          : '<p>Nessuna recensione ancora. Sii il primo!</p>';
+      } catch { document.getElementById('clist').innerHTML = ''; }
+    }
+    await caricaCommenti();
+    let logged = false;
+    try { logged = !!(await (await fetch('/api/me', { credentials: 'same-origin' })).json()).user; } catch {}
+    if (logged) {
+      const cf = document.getElementById('cform');
+      cf.hidden = false;
+      cf.onsubmit = async (e) => {
+        e.preventDefault();
+        const r = await fetch('/api/anunci/' + encodeURIComponent(a.id) + '/commenti', { method: 'POST',
+          headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+          body: JSON.stringify({ nome: cnome.value, testo: ctesto.value }) });
+        const d = await r.json().catch(() => ({}));
+        if (r.status === 401) { location.href = 'login.html'; return; }
+        document.getElementById('cmsg').textContent = r.ok ? 'Grazie! La recensione sarà visibile dopo approvazione.' : (d.error || 'Errore');
+        if (r.ok) { ctesto.value = ''; }
+      };
+    } else {
+      document.getElementById('clogin').hidden = false;
+    }
   })();
 </script>
 <script src="menu.js"></script>
