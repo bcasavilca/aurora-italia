@@ -35,6 +35,7 @@ if (process.env.RESEND_API_KEY) {
 const FROM = process.env.EMAIL_FROM || "Aurora <onboarding@resend.dev>";
 
 const app = express();
+app.disable("x-powered-by");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
