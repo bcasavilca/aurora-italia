@@ -374,6 +374,44 @@ app.post("/api/segnalazioni", (req, res) => {
   res.json({ ok: true });
 });
 
+// ---- SSR home (niente flash al reload): pagina esce già filtrata ----
+const HOME_FILE = path.join(__dirname, "index.html");
+const escH = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function cardHTML(a) {
+  return `<article class="card"><a href="anuncio.html?id=${escH(a.id)}"><div class="foto">${a.foto ? `<img src="${escH(a.foto)}" alt="">` : "<span>Nessuna foto</span>"}</div></a><div class="card-corpo"><h3><a href="anuncio.html?id=${escH(a.id)}">${escH(a.titolo)}</a></h3><p class="citta">${escH(a.citta)}</p><p class="preco">${escH(a.prezzo)} €</p><a class="ver" href="anuncio.html?id=${escH(a.id)}">Vedi annuncio →</a></div></article>`;
+}
+app.get(["/", "/index.html"], (req, res) => {
+  try {
+    let html = fs.readFileSync(HOME_FILE, "utf8");
+    const u = currentUser(req);
+    const lista = (load().anunci || []).slice().reverse();
+    const qRaw = String(req.query.q || "");
+    const q = qRaw.toLowerCase().trim();
+    const citta = String(req.query.citta || "");
+    const filtrati = lista.filter((a) => {
+      const testo = `${a.titolo} ${a.descrizione || ""} ${a.citta}`.toLowerCase();
+      if (q && !testo.includes(q)) return false;
+      if (citta && a.citta !== citta) return false;
+      return true;
+    });
+    const nris = `${filtrati.length} ${filtrati.length === 1 ? "annuncio trovato" : "annunci trovati"}`;
+    const corpo = filtrati.length ? filtrati.map(cardHTML).join("") : "<p>Nessun annuncio trovato. Prova a cambiare i filtri.</p>";
+    const opts = [...new Set(lista.map((a) => a.citta).filter(Boolean))].sort()
+      .map((c) => `<option value="${escH(c)}"${c === citta ? " selected" : ""}>${escH(c)}</option>`).join("");
+    if (u) html = html.replace('<section class="hero" id="guest-hero">', '<section class="hero" id="guest-hero" hidden>');
+    if (qRaw) html = html.replace('name="q" id="fq"', `name="q" id="fq" value="${escH(qRaw)}"`);
+    html = html.replace('<select name="citta" id="fcitta">\n        <option value="">Tutte le città</option>',
+      `<select name="citta" id="fcitta">\n        <option value="">Tutte le città</option>${opts}`);
+    html = html.replace('<p id="nris" style="color:#aaa">Ricerca in corso…</p>', `<p id="nris" style="color:#aaa">${nris}</p>`);
+    const ini = html.indexOf("<!--GRADE-INI-->");
+    const fim = html.indexOf("<!--GRADE-FIM-->");
+    if (ini !== -1 && fim !== -1) html = html.slice(0, ini) + corpo + html.slice(fim + "<!--GRADE-FIM-->".length);
+    res.type("html").send(html);
+  } catch {
+    res.sendFile(HOME_FILE);
+  }
+});
+
 // static por ultimo
 app.use("/fotos", express.static(path.join(__dirname, "fotos")));
 app.use(express.static(__dirname));
