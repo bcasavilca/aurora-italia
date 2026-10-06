@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23ff2e63' d='M12 21s-7.5-4.9-9.7-9.2C.7 8.6 2.6 5 6 5c2 0 3.4 1.1 4.2 2.3h3.6C14.6 6.1 16 5 18 5c3.4 0 5.3 3.6 3.7 6.8C19.5 16.1 12 21 12 21z'/></svg>">
 <title>Aurora — Annunci</title>
+<meta name="description" content="Aurora: annunci per adulti a Bergamo e Milano. Profili verificati, chat interna protetta, nessun anticipo. Solo maggiorenni 18+.">
 <style>html{background:#14060d}</style>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="tema-2-vibrante.css">
@@ -72,12 +73,14 @@
     <p id="nris" style="color:#aaa">Ricerca in corso…</p>
     <div class="grade" id="grade"><!--GRADE-INI--><article class="card skel" aria-hidden="true"><div class="foto skel-foto"></div><div class="card-corpo"><div class="skel-l"></div><div class="skel-l short"></div></div></article><!--GRADE-FIM--></div>
   </section>
+  <!--SEO-CITTA-->
 </main>
 
 <footer class="rodape">
   <div class="wrap">
     <p>© 2026 Aurora — Solo maggiorenni 18+</p>
     <p><a href="termini.html">Termini</a> · <a href="privacy.html">Privacy</a> · <a href="segnala.html">Segnala</a></p>
+    <p><a href="bergamo">Bergamo</a> · <a href="milano">Milano</a> · <a href="seriate">Seriate</a></p>
   </div>
 </footer>
 
@@ -93,7 +96,7 @@
     el.className = 'card';
     el.innerHTML = `
       <a href="anuncio.html?id=${a.id}">
-        <div class="foto">${a.foto ? `<img src="${a.foto}" alt="">` : '<span>Nessuna foto</span>'}</div>
+        <div class="foto">${a.foto ? `<img src="${a.foto}" alt="${a.titolo}" loading="lazy">` : '<span>Nessuna foto</span>'}</div>
       </a>
       <div class="card-corpo">
         <h3><a href="anuncio.html?id=${a.id}">${a.titolo}</a></h3>

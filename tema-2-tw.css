@@ -81,6 +81,9 @@ body{background:#14060d !important}
   #contatta{position:sticky;bottom:12px}
 }
 
+/* ---- SEO locale ---- */
+.seo-citta{max-width:720px;color:#c9a0ae;font-size:14px;line-height:1.7;margin:8px 0 40px}
+
 /* ---- Icones SVG do menu (tema vibrante) ---- */
 .drop a svg.ic{width:18px;height:18px;flex:none;color:#ff6b9d}
 .drop a.ativo svg.ic{color:#ff2e63}

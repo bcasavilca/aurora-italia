@@ -356,20 +356,41 @@ app.post("/api/segnalazioni", (req, res) => {
   res.json({ ok: true });
 });
 
-// ---- SSR home (niente flash al reload): pagina esce già filtrata ----
+// ---- SSR home + città (SEO locale, niente flash al reload) ----
 const HOME_FILE = path.join(__dirname, "index.html");
 const escH = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function cardHTML(a) {
-  return `<article class="card"><a href="anuncio.html?id=${escH(a.id)}"><div class="foto">${a.foto ? `<img src="${escH(a.foto)}" alt="">` : "<span>Nessuna foto</span>"}</div></a><div class="card-corpo"><h3><a href="anuncio.html?id=${escH(a.id)}">${escH(a.titolo)}</a></h3><p class="citta">${escH(a.citta)}</p><p class="preco">${escH(a.prezzo)} €</p><a class="ver" href="anuncio.html?id=${escH(a.id)}">Vedi annuncio →</a></div></article>`;
+  return `<article class="card"><a href="anuncio.html?id=${escH(a.id)}"><div class="foto">${a.foto ? `<img src="${escH(a.foto)}" alt="${escH(a.titolo)}" loading="lazy">` : "<span>Nessuna foto</span>"}</div></a><div class="card-corpo"><h3><a href="anuncio.html?id=${escH(a.id)}">${escH(a.titolo)}</a></h3><p class="citta">${escH(a.citta)}</p><p class="preco">${escH(a.prezzo)} €</p><a class="ver" href="anuncio.html?id=${escH(a.id)}">Vedi annuncio →</a></div></article>`;
 }
-app.get(["/", "/index.html"], (req, res) => {
+const CITTA = {
+  bergamo: {
+    nome: "Bergamo",
+    title: "Annunci a Bergamo | Aurora",
+    desc: "Annunci per adulti a Bergamo e dintorni: profili verificati, foto reali, chat interna protetta, nessun anticipo. Solo maggiorenni 18+.",
+    testo: `<p class="seo-citta">Cerchi annunci a Bergamo, Seriate, Dalmine o Treviglio? Su Aurora trovi profili verificati con foto reali e chat interna protetta, senza pagamenti anticipati e senza condividere il tuo numero. Esplora gli annunci a Bergamo, contatta in sicurezza e segnala qualsiasi comportamento sospetto. Solo maggiorenni 18+.</p>`,
+  },
+  milano: {
+    nome: "Milano",
+    title: "Annunci a Milano | Aurora",
+    desc: "Annunci per adulti a Milano e dintorni: profili verificati, foto reali, chat interna protetta, nessun anticipo. Solo maggiorenni 18+.",
+    testo: `<p class="seo-citta">Cerchi annunci a Milano, Monza o Sesto San Giovanni? Su Aurora trovi profili verificati con foto reali e chat interna protetta, senza pagamenti anticipati e senza condividere il tuo numero. Esplora gli annunci a Milano e contatta in sicurezza. Solo maggiorenni 18+.</p>`,
+  },
+  seriate: {
+    nome: "Seriate",
+    title: "Annunci a Seriate | Aurora",
+    desc: "Annunci per adulti a Seriate e Bergamo: profili verificati, foto reali, chat interna protetta, nessun anticipo. Solo maggiorenni 18+.",
+    testo: `<p class="seo-citta">Cerchi annunci a Seriate e dintorni di Bergamo? Su Aurora trovi profili verificati con foto reali e chat interna protetta, senza pagamenti anticipati. Esplora gli annunci a Seriate e contatta in sicurezza. Solo maggiorenni 18+.</p>`,
+  },
+};
+function renderHome(req, res, slug) {
   try {
     let html = fs.readFileSync(HOME_FILE, "utf8");
     const u = currentUser(req);
     const lista = (load().anunci || []).slice().reverse();
+    const preset = slug ? CITTA[slug] : null;
     const qRaw = String(req.query.q || "");
     const q = qRaw.toLowerCase().trim();
-    const citta = String(req.query.citta || "");
+    const citta = preset ? preset.nome : String(req.query.citta || "");
     const filtrati = lista.filter((a) => {
       const testo = `${a.titolo} ${a.descrizione || ""} ${a.citta}`.toLowerCase();
       if (q && !testo.includes(q)) return false;
@@ -395,11 +416,18 @@ app.get(["/", "/index.html"], (req, res) => {
     const ini = html.indexOf("<!--GRADE-INI-->");
     const fim = html.indexOf("<!--GRADE-FIM-->");
     if (ini !== -1 && fim !== -1) html = html.slice(0, ini) + corpo + html.slice(fim + "<!--GRADE-FIM-->".length);
+    const title = preset ? preset.title : qRaw ? `Risultati per "${qRaw}" | Aurora` : citta ? `Annunci a ${citta} | Aurora` : "Aurora — Annunci per adulti a Bergamo e Milano";
+    const desc = preset ? preset.desc : "Aurora: annunci per adulti a Bergamo e Milano. Profili verificati, chat interna protetta, nessun anticipo. Solo maggiorenni 18+.";
+    html = html.replace("<title>Aurora — Annunci</title>", `<title>${escH(title)}</title>`);
+    html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${escH(desc)}">`);
+    html = html.replace("<!--SEO-CITTA-->", preset ? preset.testo : "");
     res.set("Cache-Control", "no-store").type("html").send(html);
   } catch {
     res.sendFile(HOME_FILE);
   }
-});
+}
+app.get(["/", "/index.html"], (req, res) => renderHome(req, res, null));
+app.get(["/bergamo", "/milano", "/seriate"], (req, res) => renderHome(req, res, req.path.slice(1)));
 
 // static por ultimo
 app.use("/fotos", express.static(path.join(__dirname, "fotos")));
