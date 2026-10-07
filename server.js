@@ -36,6 +36,7 @@ if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
 }
 const FROM = process.env.EMAIL_FROM || "Aurora <onboarding@resend.dev>";
+const REPLY_TO = process.env.REPLY_TO || "aurora.italia.bergamo@gmail.com";
 const { resetPassword } = require("./email");
 
 const app = express();
@@ -239,6 +240,7 @@ app.post("/api/forgot", async (req, res) => {
     if (!resend) throw new Error("RESEND_API_KEY ausente");
     await resend.emails.send({
       from: FROM,
+      replyTo: REPLY_TO,
       to: email,
       subject: "Reimposta la tua password — Aurora",
       html: resetPassword(link),
@@ -512,6 +514,90 @@ function renderHome(req, res, slug) {
 }
 app.get(["/", "/index.html"], (req, res) => renderHome(req, res, null));
 app.get(["/bergamo", "/milano", "/seriate"], (req, res) => renderHome(req, res, req.path.slice(1)));
+// ---- LANDING inserzioniste: 10 intenti di guadagno/sicurezza (supply-side SEO) ----
+const PUBBLICA_FILE = path.join(__dirname, "inserzioniste.html");
+const PUBBLICA = {
+  "pubblica-annuncio-gratis": {
+    title: "Pubblica annuncio gratis a Bergamo e Milano | Aurora",
+    desc: "Pubblica gratis il tuo annuncio su Aurora: gratis per sempre, foto, chat protetta, nessun anticipo. Solo maggiorenni 18+.",
+    h1: "Pubblica il tuo annuncio gratis, in 3 minuti",
+    sub: "Gratis per sempre per le prime inserzioniste. Crea account, metti foto e prezzo, ricevi contatti nella chat protetta senza mostrare il numero.",
+  },
+  "lavora-come-accompagnatrice": {
+    title: "Lavora come accompagnatrice a Bergamo e Milano | Aurora",
+    desc: "Lavora come accompagnatrice indipendente: decidi orari, prezzi e clienti. Chat protetta, numero privato, controllo totale. 18+.",
+    h1: "Lavora come accompagnatrice indipendente",
+    sub: "Nessuna agenzia, nessuna percentuale. Decidi tu orari, zone e prezzi tra Bergamo e Milano. Clienti ti scrivono in chat, rispondi solo a chi vuoi.",
+  },
+  "guadagna-con-aurora": {
+    title: "Guadagna con annunci verificati | Aurora Bergamo Milano",
+    desc: "Guadagna con Aurora: profilo verificato, più visite, statistiche reali e clienti seri senza pagamenti anticipati. 18+.",
+    h1: "Guadagna di più con un profilo che ispira fiducia",
+    sub: "Profili verificati ricevono più contatti. Foto reali, badge ✔ Verificata, recensioni approvate da te e statistiche visite/contatti in dashboard.",
+  },
+  "annunci-senza-numero": {
+    title: "Annunci senza mostrare il numero | Numero privato | Aurora",
+    desc: "Pubblica annunci senza mostrare il numero: i clienti ti scrivono nella chat interna. WhatsApp solo se decidi tu. 18+.",
+    h1: "Il tuo numero resta privato, sempre",
+    sub: "Niente chiamate a tutte le ore. I clienti ti contattano nella chat interna di Aurora. Mostri WhatsApp solo quando e a chi vuoi tu.",
+  },
+  "chat-protetta-foto-sicure": {
+    title: "Chat protetta e foto sicure | Aurora",
+    desc: "Chat interna protetta, niente link esterni, foto fino a 5 che puoi cancellare quando vuoi. Sicurezza prima di tutto. 18+.",
+    h1: "Chat protetta e foto sotto il tuo controllo",
+    sub: "Fino a 5 foto, modifica o cancella quando vuoi. Chat senza link esterni per evitare truffe. Segnalazione rapida e blocco dei molesti.",
+  },
+  "diventa-inserzionista": {
+    title: "Diventa inserzionista su Aurora | Bergamo Milano",
+    desc: "Diventa inserzionista Aurora: account gratis, pubblicazione in 3 passi, dashboard con visite e messaggi. Solo maggiorenni 18+.",
+    h1: "Diventa inserzionista in 3 passi",
+    sub: "1. Crea account gratis → 2. Pubblica con foto e prezzo → 3. Rispondi in chat. Niente tecnica, tutto dal telefono in pochi minuti.",
+  },
+  "pubblica-in-3-minuti": {
+    title: "Pubblica in 3 minuti dal telefono | Aurora",
+    desc: "Pubblica in 3 minuti dal telefono: titolo, città, prezzo, foto. Subito online a Bergamo e Milano. Gratis. 18+.",
+    h1: "Online in 3 minuti, anche dal telefono",
+    sub: "Titolo, città, prezzo, 1 foto e sei online. Modifica tutto dopo quando vuoi. Pensato per pubblicare veloce senza computer.",
+  },
+  "dashboard-statistiche-visite": {
+    title: "Dashboard con visite e contatti | Controllo totale | Aurora",
+    desc: "Vedi chi visita e chi ti scrive: statistiche visite e contatti per ogni annuncio, recensioni moderate da te. 18+.",
+    h1: "Vedi i risultati: visite, messaggi, recensioni",
+    sub: "Ogni annuncio mostra visite e contatti. Capisci cosa funziona, cambi foto/prezzo e cresci. Recensioni pubblicate solo dopo la tua approvazione.",
+  },
+  "clienti-seri-nessun-anticipo": {
+    title: "Clienti seri, nessun anticipo | Aurora",
+    desc: "Niente pagamenti anticipati, niente truffe: regole chiare, chat interna e segnalazioni. Solo clienti seri e maggiorenni. 18+.",
+    h1: "Solo clienti seri, zero anticipi",
+    sub: "Su Aurora vige la regola: nessun pagamento anticipato. Chat interna senza link strani, segnala comportamenti sospetti e lavora tranquilla.",
+  },
+  "profilo-verificata-piu-contatti": {
+    title: "Profilo Verificata: più contatti | Aurora",
+    desc: "Ottieni il badge ✔ Verificata e ricevi più contatti: foto reali, fiducia subito, più messaggi da clienti seri. 18+.",
+    h1: "Badge Verificata = più contatti",
+    sub: "I profili con badge ricevono più clic e messaggi. Foto reali, descrizione completa e risposte rapide ti mettono in alto negli annunci recenti.",
+  },
+};
+function renderPubblica(req, res, slug) {
+  try {
+    let html = fs.readFileSync(PUBBLICA_FILE, "utf8");
+    const u = currentUser(req);
+    const p = PUBBLICA[slug];
+    if (!p) return res.sendFile(PUBBLICA_FILE);
+    if (u) html = ssrMenu(html, u);
+    html = html.replace("<title>Pubblica gratis il tuo annuncio | Aurora</title>", `<title>${escH(p.title)}</title>`);
+    html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${escH(p.desc)}">`);
+    html = html.replace(/<h1>.*?<\/h1>/, `<h1>${escH(p.h1)}</h1>`);
+    html = html.replace("Pubblichi gratis con foto, ricevi contatti nella chat protetta e controlli tutto dalla dashboard: visite, messaggi, recensioni.", escH(p.sub));
+    // canonical + testo SEO extra per unicità
+    const seoExtra = `<p class="seo-citta">Aurora è per inserzioniste maggiorenni a Bergamo, Seriate e Milano: pubblicazione gratis, chat interna senza mostrare il numero, statistiche e controllo totale. <a href="registrar.html">Crea account gratis →</a></p><p class="seo-citta" style="margin-top:8px"><a href="pubblica-annuncio-gratis">Gratis</a> · <a href="lavora-come-accompagnatrice">Lavora</a> · <a href="guadagna-con-aurora">Guadagna</a> · <a href="annunci-senza-numero">Senza numero</a> · <a href="chat-protetta-foto-sicure">Chat sicura</a></p>`;
+    html = html.replace("</main>", `${seoExtra}</main>`);
+    res.set("Cache-Control", "no-store").type("html").send(html);
+  } catch {
+    res.sendFile(PUBBLICA_FILE);
+  }
+}
+app.get(Object.keys(PUBBLICA).map((s) => "/" + s), (req, res) => renderPubblica(req, res, req.path.slice(1)));
 
 // ---- SSR menu logado em todas as páginas (niente "Accedi" dopo il login) ----
 function ssrMenu(html, u) {
